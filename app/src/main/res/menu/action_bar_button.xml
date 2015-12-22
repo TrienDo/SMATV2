@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item android:id="@+id/action_tab_map"
+          android:icon="@drawable/tab_selected"
+          android:title=" MAP"
+          android:showAsAction="always|withText"/>
+     
+    <item android:id="@+id/action_tab_poi_media"
+          android:icon="@drawable/tab_default"
+          android:title=" Selected Point\n of interest (POI)"
+          android:showAsAction="always|withText" />
+    
+    <item android:id="@+id/action_tab_eoi_media"
+          android:icon="@drawable/tab_default"
+          android:title=" Events of\n interest"
+          android:showAsAction="always|withText"
+          android:visible="false"
+        />
+     
+    <item android:id="@+id/action_tab_info"
+        android:icon="@drawable/tab_default"
+          android:title=" SUMMARY"
+          android:showAsAction="always|withText" />
+     
+    <item android:id="@+id/action_tab_response"
+        android:icon="@drawable/tab_default"
+        android:title=" REVIEW AND UPLOAD"
+        android:showAsAction="always|withText"
+        android:visible="true"
+        />
+</menu>
+
+ 

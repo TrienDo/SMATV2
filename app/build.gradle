@@ -1,0 +1,43 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 22
+    buildToolsVersion "22.0.1"
+    defaultConfig {
+        applicationId 'uk.lancs.sharc.smat'
+        minSdkVersion 16
+        targetSdkVersion 22
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            applicationVariants.all { variant ->
+                variant.outputs.each { output ->
+                    /*def formattedDate = new Date().format('yyyyMMddHHmmss')
+                    def newName = output.outputFile.name
+                    newName = newName.replace("app-", "$rootProject.ext.appName-") //"MyAppName" -> I set my app variables in the root project
+                    newName = newName.replace("-release", "-release" + formattedDate)
+                    output.outputFile = new File(output.outputFile.parent, newName)*/
+                    output.outputFile = new File(output.outputFile.parent, "SMAT_V1.22.apk")
+                }
+            }
+        }
+    }
+    productFlavors {
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:appcompat-v7:22.1.1'
+    compile project(':library')
+    compile 'com.google.android.gms:play-services:7.3.0'
+    compile files('libs/dropbox-sync-sdk-android.jar')
+    compile 'com.edmodo:cropper:1.0.1'
+    compile 'com.ogaclejapan.smarttablayout:library:1.2.1@aar'
+}

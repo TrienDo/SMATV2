@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">SMAT</string>
+    <string name="app_version">2.00</string>
+    <string name="action_mapType">Map vs. Satellite</string>
+    <string name="action_mapRotate">Fixed/Rotatable Map</string>
+    <string name="action_triggerFence">Show/Hide trigger regions</string>
+    <string name="action_upload">Upload media</string>
+    <string name="action_config">Configurations</string>
+    <string name="title_activity_media_upload">SMEP - Uploading responses</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_summarisation">Media Summarisation</string>
+    <string name="action_resetPOI">Reset POIs</string>
+    <string name="action_showOverlay">Show/Hide ground overlay</string>
+    <string name="action_showThumnail">Show/Hide image thumbnails</string>
+    <string name="action_switchMode">Test/Real mode</string>
+    <string name="message_wifiConnection">No internet/data connection detected. Please ensure that Wi-Fi/Data is enabled on your device and you are in a Wi-Fi/Data coverage</string>
+    <string name="message_dropboxConnection">You need to sign in with your Dropbox account to upload response. Please do so by opening the slide menu on the left and tap the human icon</string>
+    <string name="message_gps">Sorry, the application could not detect your current location. Please check location enabled in your device settings</string>
+    <string name="message_no_experience">"You have not yet created or opened any experience"</string>
+    <string name="message_upload_error">"There were some errors when uploading data to the server. Please try again"</string>
+    <string name="message_create_db_error">"There were some errors when creating a database for the experience to the server. Please try again"</string>
+    <string name="message_route_recording">"This route is being recorded"</string>
+    <string name="message_rendering_error">There were some errors when rendering data. Please try again or restart the app</string>
+    <string name="terms_and_conditions">Note that all data (e.g. photos, videos) you generate using this app are stored locally on the device. When you decide to upload your experience, these data will be stored in your Dropbox account. However the experience may not be supported through the WrayDisplay. Once you have published your experience, other people will be able to view and download your experience. We may also analyse your experience for our research purposes and your identity will be kept anonymous.\n\nPlease accept that these are prototypes and problems with reliability can occur. However, in case you do experience technical problems (or if you have suggestions for improvements) then please do contact thesharcproject@gmail.com so that we can try to improve the prototypes.\n\nClick the I Agree button to continue or Cancel to quit the app.</string>
+    <string name="left">Left</string>
+    <string name="right">Right</string>
+    <string name="left_and_right">Left and Right</string>
+    <string-array name="starting_session">
+        <item>Create a new experience on this device</item>
+        <item>Open an experience stored on this device</item>
+        <item>Download and open an experience (from the cloud) onto this device</item>
+    </string-array>
+    <string-array name="selecting_image">
+        <item>Taking a new photo</item>
+        <item>Selecting an existing photo</item>
+    </string-array>
+    <string name="title_activity_usermanual">SMAT Quick Guide</string>
+
+    <string name="hello_world">Hello world</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_crop">CropActivity</string>
+</resources>

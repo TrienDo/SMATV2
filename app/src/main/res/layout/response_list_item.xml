@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="fill_horizontal"
+    android:orientation="horizontal" >
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+	    android:orientation="vertical"
+	    android:paddingBottom="6dp"
+        android:gravity="center_vertical"
+	    android:paddingTop="6dp"
+        android:layout_gravity="center_vertical">
+        <RelativeLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_gravity="center_vertical">
+
+            <ImageButton
+                android:id="@+id/btnViewResponse"
+                android:layout_alignParentLeft="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:background="@null"
+                android:src="@raw/view" />
+
+
+            <ImageButton
+                android:id="@+id/btnUploadResponse"
+                android:layout_toRightOf="@+id/btnViewResponse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:background="@null"
+                android:src="@raw/upload" />
+
+            <TextView
+ 			    android:id="@+id/txtResponseType"
+                android:layout_toRightOf="@+id/btnUploadResponse"
+ 			    android:layout_width="match_parent"
+ 			    android:layout_height="wrap_content"
+ 			    android:layout_marginLeft="10dp"
+                android:layout_marginRight="50dp"
+ 			    android:gravity="center_vertical"
+ 			    android:text="Hello"
+                android:textSize="@dimen/menu_text_size"
+                android:layout_centerVertical="true" />
+
+            <ImageButton
+                android:id="@+id/btnDeleteResponse"
+                android:layout_alignParentRight="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:background="@null"
+                android:src="@raw/delete" />
+        </RelativeLayout>
+	</TableRow>
+</TableLayout>
+

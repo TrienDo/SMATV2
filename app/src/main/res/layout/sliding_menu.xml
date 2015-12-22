@@ -1,0 +1,537 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:baselineAligned="false"
+    android:orientation="vertical"
+    tools:context=".MainActivity" >
+    <TextView
+	    android:id="@+id/txtSetting"
+	    android:layout_width="match_parent"
+	    android:layout_height="56dp"
+	    android:background="#CCCCCC"
+	    android:paddingLeft="5dp"
+	    android:paddingTop="15dp"
+	    android:text="SMAT Settings (V1.05)"
+	    android:textAppearance="?android:attr/textAppearanceLarge" />
+    <ScrollView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+	    <LinearLayout 
+	          android:layout_width="wrap_content"
+	          android:layout_height="wrap_content"
+	          android:orientation="vertical">
+			    <RelativeLayout
+			        android:layout_width="match_parent"
+			        android:layout_height="wrap_content"
+			        android:paddingBottom="@dimen/activity_vertical_margin"
+			        android:paddingLeft="@dimen/activity_horizontal_margin"
+			        android:paddingRight="@dimen/activity_horizontal_margin"
+			        android:paddingTop="@dimen/activity_vertical_margin" >
+			
+			        <ImageButton
+			            android:id="@+id/imgBtnUser"
+			            android:layout_width="wrap_content"
+			            android:layout_height="wrap_content"
+			            android:layout_alignParentLeft="true"
+			            android:background="@null"
+			            android:paddingBottom="5dp"
+			            android:paddingLeft="5dp"
+			            android:paddingRight="5dp"
+			            android:paddingTop="5dp"
+			            android:src="@raw/menu_user" />
+			
+					<TextView
+					    android:id="@+id/txtUsername"
+					    android:layout_width="wrap_content"
+					    android:layout_height="wrap_content"
+					    android:layout_toRightOf="@+id/imgBtnUser"
+					    android:paddingTop="15dp"
+					    android:text="Mary Smith"
+					    android:textAppearance="?android:attr/textAppearanceMedium"
+					    android:textStyle="bold" />
+			
+					<TextView
+					    android:id="@+id/txtUseremail"
+					    android:layout_width="wrap_content"
+					    android:layout_height="wrap_content"
+					    android:layout_below="@+id/txtUsername"
+					    android:layout_toRightOf="@+id/imgBtnUser"
+					    android:paddingTop="3dp"
+					    android:text="mary.smith@gmail.com"
+					    android:textAppearance="?android:attr/textAppearanceMedium"
+					    android:textSize="16sp" />
+			        
+			        <View
+			            android:layout_width="fill_parent"
+			            android:layout_height="2dip"
+			            android:layout_below="@+id/imgBtnUser"
+			            android:background="#CCCCCC" />
+			    </RelativeLayout>
+
+				<RelativeLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:paddingBottom="@dimen/activity_vertical_margin"
+					android:paddingLeft="@dimen/activity_horizontal_margin"
+					android:paddingRight="@dimen/activity_horizontal_margin"
+					android:paddingTop="@dimen/activity_vertical_margin" >
+
+					<Button
+						android:id="@+id/btnShowHelp"
+						style="?android:attr/borderlessButtonStyle"
+						android:layout_width="match_parent"
+						android:layout_height="50dp"
+						android:layout_alignParentLeft="true"
+						android:gravity="left|center_vertical"
+						android:text="Show quick guide"
+						android:paddingLeft="@dimen/menu_padding_left"
+						android:textSize="@dimen/menu_text_size" />
+					<View
+						android:layout_width="fill_parent"
+						android:layout_height="1dip"
+						android:layout_below="@+id/btnShowHelp"
+						android:background="#CCCCCC" />
+				</RelativeLayout>
+
+				<RelativeLayout
+			        android:layout_width="match_parent"
+			        android:layout_height="wrap_content"
+			        android:paddingBottom="@dimen/activity_vertical_margin"
+			        android:paddingLeft="@dimen/activity_horizontal_margin"
+			        android:paddingRight="@dimen/activity_horizontal_margin"
+			        android:paddingTop="@dimen/activity_vertical_margin" >
+
+			        <Button
+			            android:id="@+id/btnLoadProject"
+			            style="?android:attr/borderlessButtonStyle"
+			            android:layout_width="match_parent"
+			            android:layout_height="50dp"
+			            android:layout_alignParentLeft="true"
+			            android:gravity="left|center_vertical"
+			            android:text="Open an experience stored on this device"
+			            android:paddingLeft="@dimen/menu_padding_left"
+			            android:textSize="@dimen/menu_text_size" />
+			        
+			        <View
+			            android:layout_width="fill_parent"
+			            android:layout_height="1dip"
+			            android:layout_below="@+id/btnLoadProject"
+			            android:background="#CCCCCC" />
+			    </RelativeLayout>
+			    
+			    <RelativeLayout
+			        android:layout_width="match_parent"
+			        android:layout_height="wrap_content"
+			        android:paddingBottom="@dimen/activity_vertical_margin"
+			        android:paddingLeft="@dimen/activity_horizontal_margin"
+			        android:paddingRight="@dimen/activity_horizontal_margin"
+			        android:paddingTop="@dimen/activity_vertical_margin" >
+
+			        <Button
+			            android:id="@+id/btnExploreProject"
+			            style="?android:attr/borderlessButtonStyle"
+			            android:layout_width="match_parent"
+			            android:layout_height="50dp"
+			            android:layout_alignParentLeft="true"
+			            android:gravity="left|center_vertical"
+			            android:text="Download and open an experience (from the cloud) onto this device"
+			            android:paddingLeft="@dimen/menu_padding_left"
+			            android:textSize="@dimen/menu_text_size" />
+			        <View
+			            android:layout_width="fill_parent"
+			            android:layout_height="1dip"
+			            android:layout_below="@+id/btnExploreProject"
+			            android:background="#CCCCCC" />
+			    </RelativeLayout>
+
+			<RelativeLayout
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:paddingBottom="@dimen/activity_vertical_margin"
+				android:paddingLeft="@dimen/activity_horizontal_margin"
+				android:paddingRight="@dimen/activity_horizontal_margin"
+				android:paddingTop="@dimen/activity_vertical_margin" >
+
+				<Button
+					android:id="@+id/btnCreateProject"
+					style="?android:attr/borderlessButtonStyle"
+					android:layout_width="match_parent"
+					android:layout_height="50dp"
+					android:layout_alignParentLeft="true"
+					android:gravity="left|center_vertical"
+					android:text="Create a new experience"
+					android:paddingLeft="@dimen/menu_padding_left"
+					android:textSize="@dimen/menu_text_size" />
+				<View
+					android:layout_width="fill_parent"
+					android:layout_height="1dip"
+					android:layout_below="@+id/btnCreateProject"
+					android:background="#CCCCCC" />
+			</RelativeLayout>
+			    
+			<RelativeLayout
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:paddingBottom="@dimen/activity_vertical_margin"
+				android:paddingLeft="@dimen/activity_horizontal_margin"
+				android:paddingRight="@dimen/activity_horizontal_margin"
+				android:paddingTop="@dimen/activity_vertical_margin" >
+
+				<Button
+					android:id="@+id/btnSelectYAH"
+					style="?android:attr/borderlessButtonStyle"
+					android:layout_width="match_parent"
+					android:layout_height="50dp"
+					android:layout_alignParentLeft="true"
+					android:gravity="left|center_vertical"
+					android:text="Set You-Are-Here (YAH) marker"
+					android:paddingLeft="@dimen/menu_padding_left"
+					android:textSize="@dimen/menu_text_size" />
+
+				<View
+					android:layout_width="fill_parent"
+					android:layout_height="1dip"
+					android:layout_below="@+id/btnSelectYAH"
+					android:background="#CCCCCC" />
+			</RelativeLayout>
+
+			<RelativeLayout
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:paddingBottom="@dimen/activity_vertical_margin"
+				android:paddingLeft="@dimen/activity_horizontal_margin"
+				android:paddingRight="@dimen/activity_horizontal_margin"
+				android:paddingTop="@dimen/activity_vertical_margin">
+
+				<Switch
+					android:id="@+id/switchShowGPS"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_alignParentLeft="true"
+					android:checked="true"
+					android:paddingBottom="@dimen/menu_padding"
+					android:paddingTop="@dimen/menu_padding"
+					android:textSize="@dimen/menu_text_size"
+					android:width="@dimen/menu_text_width"
+					android:paddingLeft="@dimen/menu_padding_left"
+					android:text="Show GPS Info on title bar" />
+
+				<View
+					android:layout_width="fill_parent"
+					android:layout_height="1dip"
+					android:layout_below="@+id/switchShowGPS"
+					android:background="#CCCCCC" />
+			</RelativeLayout>
+			
+			    <RelativeLayout
+			        android:layout_width="match_parent"
+				    android:layout_height="wrap_content"
+				    android:paddingBottom="@dimen/activity_vertical_margin"
+				    android:paddingLeft="@dimen/activity_horizontal_margin"
+				    android:paddingRight="@dimen/activity_horizontal_margin"
+				    android:paddingTop="@dimen/activity_vertical_margin">
+
+			        <Switch
+			            android:id="@+id/switchPushMedia"
+			            android:layout_width="wrap_content"
+			            android:layout_height="wrap_content"
+			            android:layout_alignParentLeft="true"
+			            android:checked="false"
+			            android:paddingBottom="@dimen/menu_padding"
+			            android:paddingTop="@dimen/menu_padding"
+			            android:textSize="@dimen/menu_text_size"
+			            android:width="@dimen/menu_text_width"
+			            android:paddingLeft="@dimen/menu_padding_left"
+			            android:text="Push media" />
+
+			        <View
+			            android:layout_width="fill_parent"
+			            android:layout_height="1dip"
+			            android:layout_below="@+id/switchPushMedia"			            
+			            android:background="#CCCCCC" />        
+			    </RelativeLayout>
+
+				<RelativeLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:paddingBottom="@dimen/activity_vertical_margin"
+					android:paddingLeft="@dimen/activity_horizontal_margin"
+					android:paddingRight="@dimen/activity_horizontal_margin"
+					android:paddingTop="@dimen/activity_vertical_margin">
+
+					<Switch
+						android:id="@+id/switchPushMediaAgain"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:layout_alignParentLeft="true"
+						android:checked="false"
+						android:paddingBottom="@dimen/menu_padding"
+						android:paddingTop="@dimen/menu_padding"
+						android:textSize="@dimen/menu_text_size"
+						android:width="@dimen/menu_text_width"
+						android:paddingLeft="@dimen/menu_padding_left"
+						android:text="Push media when revisiting POIs" />
+
+					<View
+						android:layout_width="fill_parent"
+						android:layout_height="1dip"
+						android:layout_below="@+id/switchPushMediaAgain"
+						android:background="#CCCCCC" />
+				</RelativeLayout>
+			    
+			    <RelativeLayout
+			        android:layout_width="match_parent"
+				    android:layout_height="wrap_content"
+				    android:paddingBottom="@dimen/activity_vertical_margin"
+				    android:paddingLeft="@dimen/activity_horizontal_margin"
+				    android:paddingRight="@dimen/activity_horizontal_margin"
+				    android:paddingTop="@dimen/activity_vertical_margin"> 
+
+			        <Switch
+			            android:id="@+id/switchSoundNotification"
+			            android:layout_width="wrap_content"
+			            android:layout_height="wrap_content"
+			            android:layout_alignParentLeft="true"
+			            android:checked="true"
+			            android:paddingBottom="@dimen/menu_padding"
+			            android:paddingTop="@dimen/menu_padding"
+			            android:textSize="@dimen/menu_text_size"
+			            android:width="@dimen/menu_text_width"
+			            android:paddingLeft="@dimen/menu_padding_left"
+			            android:text="Sound notification" />
+
+			        <View
+			            android:layout_width="fill_parent"
+			            android:layout_height="1dip"
+			            android:layout_below="@+id/switchSoundNotification"
+			            android:background="#CCCCCC" />        
+			    </RelativeLayout>
+			    
+				<RelativeLayout
+			        android:layout_width="match_parent"
+				    android:layout_height="wrap_content"
+				    android:paddingBottom="@dimen/activity_vertical_margin"
+				    android:paddingLeft="@dimen/activity_horizontal_margin"
+				    android:paddingRight="@dimen/activity_horizontal_margin"
+				    android:paddingTop="@dimen/activity_vertical_margin">
+			       
+			        <Switch
+			            android:id="@+id/switchVibrationNotification"
+			            android:layout_width="wrap_content"
+			           	android:layout_height="wrap_content"
+			            android:layout_alignParentLeft="true"
+			            android:checked="true"
+			            android:paddingBottom="@dimen/menu_padding"
+			            android:paddingTop="@dimen/menu_padding"
+			            android:textSize="@dimen/menu_text_size"
+			            android:width="@dimen/menu_text_width"
+			            android:paddingLeft="@dimen/menu_padding_left"
+			            android:text="Vibration notification" />
+			
+			        <View
+			            android:layout_width="fill_parent"
+			            android:layout_height="1dip"
+			            android:layout_below="@+id/switchVibrationNotification"
+			            android:background="#CCCCCC" />        
+			    </RelativeLayout>    
+			    <RelativeLayout
+			        android:layout_width="match_parent"
+				    android:layout_height="wrap_content"
+				    android:paddingBottom="@dimen/activity_vertical_margin"
+				    android:paddingLeft="@dimen/activity_horizontal_margin"
+				    android:paddingRight="@dimen/activity_horizontal_margin"
+				    android:paddingTop="@dimen/activity_vertical_margin">
+
+			        <Switch
+			            android:id="@+id/switchMapType"
+			            android:layout_width="wrap_content"
+			            android:layout_height="wrap_content"
+			            android:layout_alignParentLeft="true"
+			            android:checked="false"
+			            android:paddingBottom="@dimen/menu_padding"
+			            android:paddingTop="@dimen/menu_padding"
+			            android:textSize="@dimen/menu_text_size"
+			            android:width="@dimen/menu_text_width"
+			            android:paddingLeft="@dimen/menu_padding_left"
+			            android:text="Satellite maps"/>
+
+			        <View
+			            android:layout_width="fill_parent"
+			            android:layout_height="1dip"
+			            android:layout_below="@+id/switchMapType"
+			            android:background="#CCCCCC" />        
+			    </RelativeLayout>
+			    
+				<RelativeLayout
+			        android:layout_width="match_parent"
+				    android:layout_height="wrap_content"
+				    android:paddingBottom="@dimen/activity_vertical_margin"
+				    android:paddingLeft="@dimen/activity_horizontal_margin"
+				    android:paddingRight="@dimen/activity_horizontal_margin"
+				    android:paddingTop="@dimen/activity_vertical_margin">
+			        
+			        <Switch
+			            android:id="@+id/switchMapRotate"
+			            android:layout_width="wrap_content"
+			            android:layout_height="wrap_content"
+			            android:layout_alignParentLeft="true"
+			            android:checked="false"
+			            android:paddingBottom="@dimen/menu_padding"
+			            android:paddingTop="@dimen/menu_padding"
+			            android:textSize="@dimen/menu_text_size"
+			            android:width="@dimen/menu_text_width"
+			            android:paddingLeft="@dimen/menu_padding_left"
+			            android:text="Auto-rotate maps" />
+			
+			        <View
+			            android:layout_width="fill_parent"
+			            android:layout_height="2dip"
+			            android:layout_below="@+id/switchMapRotate"
+			            android:background="#CCCCCC" />        
+			
+			    </RelativeLayout>
+			    
+				<RelativeLayout
+			        android:layout_width="match_parent"
+				    android:layout_height="wrap_content"
+				    android:paddingBottom="@dimen/activity_vertical_margin"
+				    android:paddingLeft="@dimen/activity_horizontal_margin"
+				    android:paddingRight="@dimen/activity_horizontal_margin"
+				    android:paddingTop="@dimen/activity_vertical_margin">
+			        
+			        <Switch
+			            android:id="@+id/switchMapCentre"
+			            android:layout_width="wrap_content"
+			            android:layout_height="wrap_content"
+			            android:layout_alignParentLeft="true"
+			            android:checked="false"
+			            android:paddingBottom="@dimen/menu_padding"
+			            android:paddingTop="@dimen/menu_padding"
+			            android:textSize="@dimen/menu_text_size"
+			            android:width="@dimen/menu_text_width"
+			            android:paddingLeft="@dimen/menu_padding_left"
+			            android:text="Keep YAH marker centred on maps" />
+			
+			        <View
+			            android:layout_width="fill_parent"
+			            android:layout_height="2dip"
+			            android:layout_below="@+id/switchMapCentre"
+			            android:background="#CCCCCC" />        
+			
+			    </RelativeLayout>
+			    
+			    <RelativeLayout
+			        android:layout_width="match_parent"
+				    android:layout_height="wrap_content"
+				    android:paddingBottom="@dimen/activity_vertical_margin"
+				    android:paddingLeft="@dimen/activity_horizontal_margin"
+				    android:paddingRight="@dimen/activity_horizontal_margin"
+				    android:paddingTop="@dimen/activity_vertical_margin">
+			       
+			        <Switch
+			            android:id="@+id/switchTestMode"
+			            android:layout_width="wrap_content"
+			            android:layout_height="wrap_content"
+			            android:layout_alignParentLeft="true"
+			            android:checked="false"
+			            android:paddingBottom="@dimen/menu_padding"
+			            android:paddingTop="@dimen/menu_padding"
+			            android:textSize="@dimen/menu_text_size"
+			            android:width="@dimen/menu_text_width"
+			            android:paddingLeft="@dimen/menu_padding_left"
+			            android:text="Test mode"/>
+			
+			        <View
+			            android:layout_width="fill_parent"
+			            android:layout_height="1dip"
+			            android:layout_below="@+id/switchTestMode"
+			            android:background="#CCCCCC" />        
+			
+			    </RelativeLayout>
+			    
+			    <RelativeLayout
+			        android:layout_width="match_parent"
+				    android:layout_height="wrap_content"
+				    android:paddingBottom="@dimen/activity_vertical_margin"
+				    android:paddingLeft="@dimen/activity_horizontal_margin"
+				    android:paddingRight="@dimen/activity_horizontal_margin"
+				    android:paddingTop="@dimen/activity_vertical_margin">
+			 
+			        <Switch
+			            android:id="@+id/switchTriggerZone"
+			            android:layout_width="wrap_content"
+			            android:layout_height="wrap_content"
+			            android:layout_alignParentLeft="true"
+			            android:checked="true"
+			            android:paddingBottom="@dimen/menu_padding"
+			            android:paddingTop="@dimen/menu_padding"
+			            android:textSize="@dimen/menu_text_size"
+			            android:width="@dimen/menu_text_width"
+			            android:paddingLeft="@dimen/menu_padding_left"
+			            android:text="Show trigger zones"/>
+			
+			        <View
+			            android:layout_width="fill_parent"
+			            android:layout_height="1dip"
+			            android:layout_below = "@+id/switchTriggerZone"
+			            android:background="#CCCCCC" />        
+			
+			    </RelativeLayout>
+			    
+			    <RelativeLayout
+			        android:layout_width="match_parent"
+				    android:layout_height="wrap_content"
+				    android:paddingBottom="@dimen/activity_vertical_margin"
+				    android:paddingLeft="@dimen/activity_horizontal_margin"
+				    android:paddingRight="@dimen/activity_horizontal_margin"
+				    android:paddingTop="@dimen/activity_vertical_margin">
+
+			        <Switch
+			            android:id="@+id/switchShowPOI"
+			            android:layout_width="wrap_content"
+			            android:layout_height="wrap_content"
+			            android:layout_alignParentLeft="true"
+			            android:checked="true"
+			            android:paddingBottom="@dimen/menu_padding"
+			            android:paddingTop="@dimen/menu_padding"
+			            android:textSize="@dimen/menu_text_size"
+			            android:width="@dimen/menu_text_width"
+			            android:paddingLeft="@dimen/menu_padding_left"
+			            android:text="Show POIs"/>
+			
+			        <View
+			            android:layout_width="fill_parent"
+			            android:layout_height="1dip"
+			            android:layout_below="@+id/switchShowPOI"
+			            android:background="#CCCCCC" />        
+			
+			    </RelativeLayout>
+			    
+			    <RelativeLayout
+			        android:layout_width="match_parent"
+			        android:layout_height="wrap_content"
+			        android:paddingBottom="@dimen/activity_vertical_margin"
+			        android:paddingLeft="@dimen/activity_horizontal_margin"
+			        android:paddingRight="@dimen/activity_horizontal_margin"
+			        android:paddingTop="@dimen/activity_vertical_margin" >
+			    
+			        <Button
+			            android:id="@+id/btnResetPOIs"
+			            style="?android:attr/borderlessButtonStyle"
+			            android:layout_width="match_parent"
+			            android:layout_height="50dp"
+			            android:gravity="left|center_vertical"
+			            android:paddingLeft="@dimen/menu_padding_left"
+			            android:textSize="@dimen/menu_text_size"
+			            android:text="Reset POIs" />
+			        
+			        <View
+			            android:layout_width="fill_parent"
+			            android:layout_height="2dip"
+			            android:layout_below="@+id/btnResetPOIs"
+			            android:background="#CCCCCC" />
+			    </RelativeLayout>
+			</LinearLayout>   
+    </ScrollView> 
+</LinearLayout>

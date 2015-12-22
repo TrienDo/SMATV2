@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+    <TextView
+        android:id="@+id/txtPoiName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/button_padding"
+        android:textSize="@dimen/menu_text_size"
+        android:text="Please enter POI name"
+        />
+
+    <EditText
+        android:id="@+id/editTextPoiName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/menu_text_size"
+        android:layout_marginLeft="@dimen/button_padding"
+        android:ems="10"
+        android:capitalize="sentences"
+        android:clickable="false">
+    </EditText>
+    <TextView
+        android:id="@+id/txtPoiType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/menu_text_size"
+        android:layout_marginLeft="@dimen/button_padding"
+        android:text="POI type"
+        android:layout_marginTop="20dp" />
+
+    <RadioGroup
+        android:id="@+id/radioPoiType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="30dp"
+        android:layout_marginBottom="30dp"
+        android:layout_gravity="right">
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" Normal"
+            android:id="@+id/radioButtonNormal"
+            android:layout_marginTop="@dimen/button_padding"
+            android:button="@drawable/button_radio"
+            android:checked="true"
+            android:textSize="@dimen/menu_text_size" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" Accessibility/Hazard"
+            android:id="@+id/radioButtonAccessibility"
+            android:layout_marginTop="@dimen/button_padding"
+            android:button="@drawable/button_radio"
+            android:textSize="@dimen/menu_text_size" />
+    </RadioGroup>
+    <!--
+    <TextView
+        android:id="@+id/txtTriggerzone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/menu_text_size"
+        android:layout_marginLeft="@dimen/button_padding"
+        android:text="How close did you need to get to this POI before you could see it fully"
+        android:layout_marginTop="20dp" />
+
+    <RadioGroup
+        android:id="@+id/radioTriggerzone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="30dp"
+        android:layout_marginBottom="30dp"
+        android:layout_gravity="right">
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" Very (around 10m)"
+            android:id="@+id/radioButtonSmall"
+            android:layout_marginTop="@dimen/button_padding"
+            android:button="@drawable/button_radio"
+            android:textSize="@dimen/menu_text_size" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" Medium (around 20m)"
+            android:id="@+id/radioButtonMedium"
+            android:checked="true"
+            android:layout_marginTop="@dimen/button_padding"
+            android:button="@drawable/button_radio"
+            android:textSize="@dimen/menu_text_size" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" Not (around 50m)"
+            android:id="@+id/radioButtonLarge"
+            android:layout_marginTop="@dimen/button_padding"
+            android:button="@drawable/button_radio"
+            android:textSize="@dimen/menu_text_size" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" Other (please select)"
+            android:id="@+id/radioButtonOther"
+            android:layout_marginTop="10dp"
+            android:button="@drawable/button_radio"
+            android:textSize="@dimen/menu_text_size" />
+
+        <NumberPicker
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="70dp"
+            android:id="@+id/numberPickerTriggerzone"
+            />
+
+    </RadioGroup>-->
+</LinearLayout>

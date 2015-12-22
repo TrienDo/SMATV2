@@ -1,0 +1,96 @@
+<resources>
+    <!--
+        Base application theme, dependent on API level. This theme is replaced
+        by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
+    -->
+    <style name="AppBaseTheme" parent="android:Theme.Light">
+        <!--
+            Theme customizations available in newer API levels can go in
+            res/values-vXX/styles.xml, while customizations related to
+            backward-compatibility can go here.
+        -->
+    </style>
+
+    <!-- Application theme. -->
+    <style name="AppTheme" parent="AppBaseTheme">
+        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+        <item name="android:textSize">18sp</item>
+        <item name="android:titleTextStyle">@style/SharcTitleStyle</item>
+        <item name="android:actionBarStyle">@style/SharcActionBar</item>
+        <item name="android:actionBarTabBarStyle">@style/SharcActionBarTabStyle</item>
+        <item name="android:actionBarTabTextStyle">@style/SharcActionBarText</item>
+
+    </style>
+    <!-- ActionBar styles -->
+    <style name="SharcActionBarTabStyle"
+        parent="@android:style/Widget.Holo.ActionBar.TabBar">
+        <item name="android:divider">@drawable/actionbar_divider</item>
+        <item name="android:showDividers">middle</item>
+        <item name="android:paddingLeft">0dp</item>
+        <item name="android:paddingRight">0dp</item>
+        <item name="android:padding">0dp</item>
+    </style>
+
+    <style name="SharcTitleStyle"
+        parent="@android:style/Widget.Holo.ActionBar.TabText">
+        <item name="android:textColor">#FFFF00</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="SharcActionBarText"
+        parent="@android:style/Widget.Holo.ActionBar.TabText">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">#FFFFFF</item>
+    </style>
+
+    <style name="SharcActionBar" parent="@android:style/Widget.Holo.Light.ActionBar.Solid.Inverse">
+        <item name="android:background">@color/sa_green</item>
+        <item name="android:backgroundStacked">@color/stacked_green</item>
+        <item name="android:titleTextStyle">@style/SharcTitleStyle</item>
+        <item name="titleTextStyle">@style/SharcTitleStyle</item>
+    </style>
+
+    <color name="sa_green">#14a804</color>
+    <color name="stacked_green">#118504</color>
+    <color name="sa_red">#FF0000</color>
+
+    <style name="btnStyleBlue" parent="@android:style/Widget.Button">
+        <item name="android:textSize">@dimen/button_text_size</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:gravity">center</item>
+        <item name="android:shadowColor">#000000</item>
+        <item name="android:shadowDx">1</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">0.6</item>
+        <item name="android:background">@drawable/custom_btn_blue</item>
+        <item name="android:padding">10dip</item>
+    </style>
+
+    <style name="btnStyleOrange" parent="@android:style/Widget.Button">
+        <item name="android:textSize">@dimen/button_text_size</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:gravity">center</item>
+        <item name="android:shadowColor">#000000</item>
+        <item name="android:shadowDx">1</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">0.6</item>
+        <item name="android:background">@drawable/custom_btn_orange</item>
+        <item name="android:padding">10dip</item>
+    </style>
+
+    <style name="btnStyleBeige" parent="@android:style/Widget.Button">
+        <item name="android:textSize">@dimen/button_text_size</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">#000000</item>
+        <item name="android:gravity">center</item>
+        <item name="android:shadowColor">#000000</item>
+        <item name="android:shadowDx">1</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">0.6</item>
+        <item name="android:background">@drawable/custom_btn_beige</item>
+        <item name="android:padding">10dip</item>
+    </style>
+
+</resources>

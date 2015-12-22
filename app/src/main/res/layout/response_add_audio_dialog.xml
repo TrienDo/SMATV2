@@ -1,0 +1,41 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_gravity="center_horizontal"
+    android:baselineAligned="false"
+    android:orientation="vertical"
+    tools:context=".MainActivity" >
+			 <LinearLayout
+			     android:layout_width="match_parent"
+			     android:layout_height="wrap_content"
+			     android:gravity="center_horizontal"
+			     android:layout_marginTop="15dp"
+			     android:orientation="horizontal" >
+
+		        <Button
+	                android:id="@+id/btnAudioRecording"
+	                android:layout_width="140dp"
+	                android:layout_height="60dp"
+	                android:layout_marginBottom="10dp"
+	                android:onClick = "recordAudio"                
+	                android:text = "Start recording"
+	                android:textStyle="bold"
+					android:background="#ffad0d06"
+					android:textColor="#FFFFFFFF"
+	                android:textSize="@dimen/menu_text_size"
+	              	/>
+		        
+		        <TextView
+	                android:id="@+id/viewRecording"
+	                android:layout_width="135dp"
+	                android:layout_height="60dp"	                
+	                android:layout_marginLeft="10dp"
+	                android:layout_marginBottom="10dp"                
+	                android:text="00:00:00"
+	                android:textStyle="bold"
+	                android:textColor="#14AD30"
+	                android:textSize="@dimen/menu_text_size"
+	                />
+		    </LinearLayout>
+</LinearLayout>

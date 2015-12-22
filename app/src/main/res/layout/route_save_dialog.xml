@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/button_padding"
+    >
+    <TextView
+        android:id="@+id/txtRouteName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/menu_text_size"
+        android:text="Route name"/>
+    <EditText
+        android:id="@+id/editTextRouteName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/menu_text_size"
+        android:capitalize="sentences">
+    </EditText>
+    <TextView
+        android:id="@+id/txtRouteDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/button_padding"
+        android:textSize="@dimen/menu_text_size"
+        android:text="Route description (optional but please consider including whether this route is affected by season, weather, etc)"/>
+
+    <EditText
+        android:id="@+id/editTextRouteDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/menu_text_size"
+        android:capitalize="sentences">
+    </EditText>
+    <TextView
+        android:id="@+id/txtRouteSuitability"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/button_padding"
+        android:textSize="@dimen/menu_text_size"
+        android:text="Is this route suitable for"/>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:button="@drawable/button_checkbox"
+            android:layout_marginLeft="@dimen/button_padding"
+            android:padding="@dimen/button_padding"
+            android:checked="true"
+            android:text="A walk"
+            android:id="@+id/checkBoxWalk" />
+
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/button_padding"
+            android:padding="@dimen/button_padding"
+            android:button="@drawable/button_checkbox"
+            android:text="A cycle"
+            android:id="@+id/checkBoxCycle" />
+
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/button_padding"
+            android:padding="@dimen/button_padding"
+            android:button="@drawable/button_checkbox"
+            android:text="A drive"
+            android:id="@+id/checkBoxDrive" />
+    </LinearLayout>
+
+</LinearLayout>

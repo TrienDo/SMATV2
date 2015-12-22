@@ -1,0 +1,59 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_gravity="center_horizontal"
+    android:baselineAligned="false"
+    android:orientation="vertical"
+    tools:context=".MainActivity" >
+			 <LinearLayout
+			     android:layout_width="match_parent"
+			     android:layout_height="wrap_content"
+			     android:gravity="center_horizontal"
+			     android:layout_marginTop="15dp"
+			     android:orientation="horizontal" >
+
+		        <ImageButton
+	                android:id="@+id/btnYAHBlue"
+	                android:layout_width="60dp"
+	                android:layout_height="60dp"
+	                android:onClick = "setBlueYAH"                
+	                android:src="@raw/yahblue24"
+					style ="@style/btnStyleBeige"/>
+		        
+		        <ImageButton
+	                android:id="@+id/btnYAHRed"
+	                android:layout_width="60dp"
+	                android:layout_height="60dp"
+	                android:onClick = "setRedYAH"
+	                android:layout_marginLeft="20dp"                
+	                android:src="@raw/yahred24"
+					style ="@style/btnStyleBeige"/>
+		    </LinearLayout>
+		    
+		    <LinearLayout
+		        android:layout_width="match_parent"
+		        android:layout_height="wrap_content"
+		        android:layout_marginTop="20dp"
+		        android:layout_marginBottom="15dp"
+		        android:gravity="center_horizontal"
+		        android:orientation="horizontal" >
+
+		        <ImageButton
+	                android:id="@+id/btnYAHBlueHalo"
+	                android:layout_width="60dp"
+	                android:layout_height="60dp" 
+	                android:onClick = "setBlueYAHBig"               
+	                android:src="@raw/yahblue32"
+					style ="@style/btnStyleBeige"/>
+		        
+		        <ImageButton
+	                android:id="@+id/btnYAHRedHalo"
+	                android:layout_width="60dp"
+	                android:layout_height="60dp"
+	                android:layout_marginLeft="20dp"
+	                android:onClick = "setRedYAHBig"
+	                android:src="@raw/yahred32"
+					style ="@style/btnStyleBeige"/>
+			</LinearLayout>		   
+</LinearLayout>

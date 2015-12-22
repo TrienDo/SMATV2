@@ -1,0 +1,38 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:baselineAligned="false"
+    android:orientation="vertical"
+    tools:context=".MediaUploadActivity" >
+			<TextView
+				android:id="@+id/txtMediaTitle"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:textSize="@dimen/menu_text_size"
+				android:text="Title (optional)"/>
+			<EditText
+				android:id="@+id/editTextTitleD"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:textSize="@dimen/menu_text_size"
+				android:ems="10"
+				android:capitalize="sentences">
+			</EditText>
+			<TextView
+				android:id="@+id/txtMediaContent"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:textSize="@dimen/menu_text_size"
+				android:text="Content"/>
+
+			<EditText
+				android:id="@+id/editTextMediaContentD"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:textSize="@dimen/menu_text_size"
+				android:ems="10"
+				android:capitalize="sentences"
+				android:clickable="false">
+			</EditText>
+</LinearLayout>

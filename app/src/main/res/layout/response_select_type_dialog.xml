@@ -1,0 +1,63 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_gravity="center_horizontal"
+    android:baselineAligned="false"
+    android:orientation="vertical"
+    tools:context=".MainActivity" >
+			 <LinearLayout
+			     android:layout_width="match_parent"
+			     android:layout_height="wrap_content"
+			     android:gravity="center_horizontal"
+			     android:layout_marginTop="15dp"
+			     android:orientation="horizontal" >
+
+		        <Button
+	                android:id="@+id/btnAddText"
+	                android:layout_width="135dp"
+	                android:layout_height="60dp"
+	                android:onClick = "addTextResponse"                
+	                android:text = "Add Text"
+					style ="@style/btnStyleBeige"
+	              	/>
+		        
+		        <Button
+	                android:id="@+id/btnAddPhoto"
+	                android:layout_width="135dp"
+	                android:layout_height="60dp"
+	                android:onClick = "addPhotoResponse"
+	                android:layout_marginLeft="10dp"                
+	                android:text="Add Photo"
+					style ="@style/btnStyleBeige"
+	                />
+		    </LinearLayout>
+		    
+		    <LinearLayout
+		        android:layout_width="match_parent"
+		        android:layout_height="wrap_content"
+		        android:layout_marginTop="20dp"
+		        android:layout_marginBottom="15dp"
+		        android:gravity="center_horizontal"
+		        android:orientation="horizontal" >
+
+		        <Button
+	                android:id="@+id/btnAddAudio"
+	                android:layout_width="135dp"
+	                android:layout_height="60dp"                
+	                android:text="Add Audio"
+	                android:onClick = "addAudioResponse"
+					style ="@style/btnStyleBeige"
+	                />
+		        
+		        <Button
+	                android:id="@+id/btnAddVideo"
+	                android:layout_width="135dp"
+	                android:layout_height="60dp"
+	                android:layout_marginLeft="10dp"
+	                android:text="Add Video" 
+	                android:onClick = "addVideoResponse"
+					style ="@style/btnStyleBeige"
+					/>
+			</LinearLayout>		   
+</LinearLayout>
