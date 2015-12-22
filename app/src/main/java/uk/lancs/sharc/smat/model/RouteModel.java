@@ -6,8 +6,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.orm.SugarRecord;
+
 /**
  * <p>This class is a reduced model of the route entity</p>
  * <p>It can be changed later depending on future work </p>
@@ -16,122 +19,89 @@ import com.google.android.gms.maps.model.LatLng;
  * Date: Feb 2015
  */
 
-public class RouteModel {
-	private String id;
-	private String name;    
-	private String desc;
-	private String colour;	
-	private ArrayList<LatLng> path; 
-	private float distance;			//the length of the route --> summary info
-	private String directed;
-	//The below attributes are not used now but may be used in the future
-    //this.mediaOrder = new Array();
-    //this.associatedMedia = new Array();       
-    //this.associatedPOI = mSelectedPOIs;    
-    //is.associatedEOI = mSelectedEOIs;
+public class RouteModel extends SugarRecord {
+	//@Unique
+	private Long mid;
+	private Long designerId;
+	private Long experienceId;
+	private String name;
+	private String description;
+	private boolean directed;
+	private String colour;
+	private String path;
+	private String poiList;
+	private String eoiList;
 
+	public RouteModel(){
 
-
-	public RouteModel()
-	{
-		this.id = String.valueOf(new Date().getTime());
-		this.colour = "FF0000";
-		this.name = "";
-		this.desc = "";
-		this.path = new ArrayList<LatLng>();
-		this.directed = "true";
-		this.distance = 0;
 	}
 
-	public RouteModel(String id, String name, String desc, String colour, float distance, String directed)
-	{
-		this.id = id;
-		this.colour = colour;
+	public RouteModel(Long id, Long designerId, Long experienceId, String name, String description, boolean directed, String colour, String path, String poiList, String eoiList){
+		this.mid = id;
+		this.designerId = designerId;
+		this.experienceId = experienceId;
 		this.name = name;
-		this.desc = desc;
-		this.path = new ArrayList<LatLng>();
+		this.description = description;
 		this.directed = directed;
-		this.distance = distance;
+		this.colour = colour;
+		this.path = path;
+		this.poiList = poiList;
+		this.eoiList = eoiList;
 	}
 
-	public String getDirected()
-	{
-		return directed;
-	}
-
-	public void setDirected(String directed) {
-		this.directed = directed;
-	}
-
-	public String getPathString()
-	{
-		if (path.size() <= 0)
-			return "";
-		//float distance = 0.0f;
-		//float[] results = new float[1];
-		String pathString = path.get(0).latitude + " " + path.get(0).longitude;
-		for (int i=1; i < path.size(); i++)
+	public List<LatLng> getPath() {
+		List<LatLng> latLngPath = new ArrayList<LatLng>();
+		String[]latLngInfo = this.path.split(" ");
+		if(latLngInfo.length > 2)
 		{
-			pathString += " " + path.get(i).latitude + " " + path.get(i).longitude;
-			//Location.distanceBetween(path.get(i - 1).latitude, path.get(i - 1).longitude, path.get(i).latitude, path.get(i).longitude, results);
-			//distance += results[0];
+			int i = 0;
+			while (i < latLngInfo.length)
+			{
+				latLngPath.add(new LatLng(Float.parseFloat(latLngInfo[i]), Float.parseFloat(latLngInfo[i+1])));
+				i+=2;
+			}
 		}
-		//this.setDistance(distance/1000);//Get km
-		return pathString;
+		return latLngPath;
 	}
-	public ArrayList<LatLng> getPath() {
-		return path;
-	}
-
-	public LatLng getLastPointOfPath()
-	{
-		if(path.size() > 0)
-			return path.get(path.size()-1);
-		else
-			return null;
-	}
-	public void setPath(ArrayList<LatLng> path) {
+	public void setPath(String path) {
 		this.path = path;
 	}
+
+	public String getPathString(){
+		return  path;
+	}
 	public float getDistance() {
-		return distance;
+		float distance = 0.0f;
+		float[] results = new float[1];
+		List<LatLng> routePath = this.getPath();
+		for (int i=1; i < routePath.size(); i++)
+		{
+			Location.distanceBetween(routePath.get(i - 1).latitude, routePath.get(i - 1).longitude, routePath.get(i).latitude, routePath.get(i).longitude, results);
+			distance += results[0];
+		}
+		return distance / 1000 ;//km
 	}
 	public void setDistance(float distance) {
-		this.distance = distance;
+		//this.distance = distance;
 	}
 
-	public String getId() {
-		return id;
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
-	public void setId(String id) {
-		this.id = id;
+	public void setId(Long id) {
+		this.mid = id;
 	}
 
 	public String getName() {
-		try {
-			return URLDecoder.decode(name, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
 		return name;
 	}
 
 	public void setName(String name) {
 		this.name = name;
-	}
-
-	public String getDesc() {
-		try {
-			return URLDecoder.decode(desc, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-		return desc;
-	}
-
-	public void setDesc(String desc) {
-		this.desc = desc;
 	}
 
 	public String getColour() {
@@ -140,5 +110,54 @@ public class RouteModel {
 
 	public void setColour(String colour) {
 		this.colour = colour;
+	}
+
+	public boolean getDirected() {
+		return directed;
+	}
+
+	public void setDirected(boolean directed) {
+		this.directed = directed;
+	}
+
+	@Override
+	public Long getId() {
+		return mid;
+	}
+
+	public Long getDesignerId() {
+		return designerId;
+	}
+
+	public void setDesignerId(Long designerId) {
+		this.designerId = designerId;
+	}
+
+	public Long getExperienceId() {
+		return experienceId;
+	}
+
+	public void setExperienceId(Long experienceId) {
+		this.experienceId = experienceId;
+	}
+
+	public boolean isDirected() {
+		return directed;
+	}
+
+	public String getPoiList() {
+		return poiList;
+	}
+
+	public void setPoiList(String poiList) {
+		this.poiList = poiList;
+	}
+
+	public String getEoiList() {
+		return eoiList;
+	}
+
+	public void setEoiList(String eoiList) {
+		this.eoiList = eoiList;
 	}
 }

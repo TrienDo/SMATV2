@@ -8,6 +8,9 @@ import java.util.Date;
 import uk.lancs.sharc.smat.service.SharcLibrary;
 import android.net.Uri;
 
+import com.orm.SugarRecord;
+import com.orm.dsl.Ignore;
+
 /**
  * <p>This class is a model of the response entity</p>
  *
@@ -15,86 +18,82 @@ import android.net.Uri;
  * Date: Feb 2015
  */
 
-public class ResponseModel {
-	private String id;
-	private String type;
-	private String desc;
+public class ResponseModel extends SugarRecord {
+	private String mid;
+	private Long experienceId;
+	private String userId;
+	private String contentType;
 	private String content;
-	private String noOfLike;
-
-	private String noOfComment;
+	private String description;
 	private String entityType;
-	private String entityID;
-	private String conName;
-	private String conEmail;
+	private String entityId;//should be Long but need this Id to store LatLng of new POI
 	private String status;
+	private int size;
+	private String submittedDate;
+
+	@Ignore
 	private Uri fileUri;
-	
-	public ResponseModel(String mID, String mStatus, String mType, String mDesc, String mContent, String mEntityType, String mEntityID, String mNoOfLike, String mConName, String mConEmail)
+
+	public static final String FOR_POI = "POI";
+	public static final String FOR_EOI = "EOI";
+	public static final String FOR_ROUTE = "ROUTE";
+	public static final String FOR_NEW_POI = "NEW";
+	public static final String FOR_MEDIA = "MEDIA";
+	public static final String FOR_RESPONSE = "RESPONSES";
+
+	public static final String STATUS_ACCEPTED = "accepted";
+	public static final String STATUS_FOR_UPLOAD = "uploading";
+
+	public ResponseModel(){
+
+	}
+
+	public ResponseModel(String mid, Long experienceId, String userId, String contentType, String content, String description,
+						 String entityType, String entityId, String status, int size, String submittedDate)
 	{
-		this.id = mID;
-	    this.type = mType;//(Text/Image/Audio/Video)
-	    this.desc = mDesc;
-	    this.content = mContent; // Content (Text vs. path to media)
-	    this.noOfLike = mNoOfLike;
-	    this.entityType = mEntityType;
-	    this.entityID = mEntityID;
-	    this.conName = mConName;
-	    this.conEmail = mConEmail;
-	    this.status = mStatus;
+		this.mid = mid;
+		this.experienceId = experienceId;
+		this.userId = userId;
+		this.contentType = contentType;//(Text/Image/Audio/Video)
+		this.content = content; // Content (Path to media)
+		this.description = description;
+		this.entityType = entityType;
+		this.entityId = entityId;
+		this.status = status;
+		this.size = size;
+		this.submittedDate = submittedDate;
 	}
 
-	public String getEntityID() {
-		return entityID;
+	public String getEntityId() {
+		return entityId;
 	}
 
-	public void setEntityID(String entityID) {
-		this.entityID = entityID;
+	public void setEntityID(String entityId) {
+		this.entityId = entityId;
 	}
 
-	public String getDesc() {
-        try {
-            return URLDecoder.decode(desc, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return desc;
+	public String getDescription() {
+		return description;
 	}
 
-	public void setDesc(String desc) {
-		this.desc = desc;
+	public void setDescription(String desc) {
+		this.description = desc;
 	}
 
 	public String getContent() {
-        if(type.equalsIgnoreCase("text"))
-        {
-            try {
-                return URLDecoder.decode(content,"UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-        }
-        return content;
+		return content;
 	}
 
 	public void setContent(String content) {
 		this.content = content;
 	}
 
-	public String getNoOfLike() {
-		return noOfLike;
+	public int getNoOfLike() {
+		return 0;
 	}
 
-	public void setNoOfLike(String noOfLike) {
-		this.noOfLike = noOfLike;
-	}
-
-	public String getNoOfComment() {
-		return noOfComment;
-	}
-
-	public void setNoOfComment(String noOfComment) {
-		this.noOfComment = noOfComment;
+	public int getNoOfComment() {
+		return 0;
 	}
 
 	public String getEntityType() {
@@ -105,27 +104,6 @@ public class ResponseModel {
 		this.entityType = entityType;
 	}
 
-	public String getConName() {
-        try {
-            return URLDecoder.decode(conName,"UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return conName;
-	}
-
-	public void setConName(String conName) {
-		this.conName = conName;
-	}
-
-	public String getConEmail() {
-		return conEmail;
-	}
-
-	public void setConEmail(String conEmail) {
-		this.conEmail = conEmail;
-	}
-
 	public String getStatus() {
 		return status;
 	}
@@ -134,20 +112,20 @@ public class ResponseModel {
 		this.status = status;
 	}
 
-	public String getId() {
-		return id;
+	public String getMyId () {
+		return mid;
 	}
 
-	public void setId(String id) {
-		this.id = id;
+	public void setMyId(String id) {
+		this.mid = id;
 	}
 
-	public String getType() {
-		return type;
+	public String getContentType() {
+		return contentType;
 	}
 
-	public void setType(String type) {
-		this.type = type;
+	public void setContentType(String type) {
+		this.contentType = type;
 	}
 
 	public Uri getFileUri() {
@@ -160,14 +138,58 @@ public class ResponseModel {
 		this.fileUri = fileUri;
 	}
 
+	public String getSubmittedDate(){
+		return submittedDate;
+	}
+
+	public String getUserId(){
+		return  userId;
+	}
+
+	public int getSize() {
+		return size;
+	}
+
+	public void setSize(int size) {
+		this.size = size;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+
+	public void setEntityId(String entityId) {
+		this.entityId = entityId;
+	}
+
+	public String getMid() {
+		return mid;
+	}
+
+	public void setMid(String mid) {
+		this.mid = mid;
+	}
+
+	public Long getExperienceId() {
+		return experienceId;
+	}
+
+	public void setExperienceId(Long experienceId) {
+		this.experienceId = experienceId;
+	}
+
+	public void setSubmittedDate(String submittedDate) {
+		this.submittedDate = submittedDate;
+	}
+
 	public String getHTMLCodeForResponse(boolean isLocal)//Two types of responses: local added by the current user, online submitted by other users
 	{
-		//String responseHeader = "<div style='background-color:#AAEEFF;'><p style='margin-left:30px;font-weight:bold;'> You  ";
-		String responseHeader = "<div style='background-color:#FFEEFF;'><p style='margin-left:30px;font-weight:bold;'> You performed this action ";
+		String responseHeader = "<div style='background-color:#AAEEFF;'><p style='margin-left:30px;font-weight:bold;'> You performed this action ";
 		if(isLocal)
-			responseHeader += "at " + new Date(Long.parseLong(this.getId())).toString() + "</p>";
+			responseHeader += "you on " + this.submittedDate + "</p>";
 		else
-			responseHeader += this.getConName() + " at " + new Date(Long.parseLong(this.getId())).toString() + "</p>";
-		return responseHeader + SharcLibrary.getHTMLCodeForMedia(this.getId(),"Responses", this.getNoOfLike(), this.getNoOfComment(), this.getType(), this.getContent(), this.getDesc(), isLocal) + "</div>";
+			responseHeader += this.userId + " on " + this.submittedDate + "</p>";
+		return responseHeader + SharcLibrary.getHTMLCodeForMedia(this.getId().toString(),"Responses", this.getNoOfLike(), this.getNoOfComment(), this.getContentType(),
+				this.getContent(), this.getDescription(), isLocal) + "</div>";
 	}
 }

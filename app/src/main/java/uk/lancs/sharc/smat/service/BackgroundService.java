@@ -31,7 +31,7 @@ public class BackgroundService extends Service
 {
 	private static final String TAG = "SMEP_SERVICE";
 	private LocationManager mLocationManager = null;
-	private ArrayList<POIModel> allPOIs;
+	private List<POIModel> allPOIs;
     private Hashtable<Integer,Long> shownLocation;
 
 	private class LocationListener implements android.location.LocationListener
@@ -96,14 +96,14 @@ public class BackgroundService extends Service
 					if(allPOIs.get(i).getTriggerType().equalsIgnoreCase("circle"))
 					{
 						float[] results = new float[1];
-						tmpPoint = allPOIs.get(i).getCoordinates().get(0);
+						tmpPoint = allPOIs.get(i).getTriggerZoneCoordinates().get(0);
 						Location.distanceBetween(L1.getLatitude(),L1.getLongitude(), tmpPoint.latitude,tmpPoint.longitude, results);
-						if(results[0] < allPOIs.get(i).getRadius())//radius of circle
+						if(results[0] < allPOIs.get(i).getTriggerZoneRadius())//radius of circle
 							isWithin = true;
 					}
 					else if(allPOIs.get(i).getTriggerType().equalsIgnoreCase("polygon"))
 					{						
-						List<LatLng> polyPath = allPOIs.get(i).getCoordinates();
+						List<LatLng> polyPath = allPOIs.get(i).getTriggerZoneCoordinates();
 						isWithin = SharcLibrary.isCurrentPointInsideRegion(new LatLng(L1.getLatitude(), L1.getLongitude()), polyPath);
 					}					
 					

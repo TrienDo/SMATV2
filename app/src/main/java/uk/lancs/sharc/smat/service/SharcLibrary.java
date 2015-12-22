@@ -2,6 +2,8 @@ package uk.lancs.sharc.smat.service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -117,40 +119,42 @@ public class SharcLibrary
 
 	//id + itemType are used to identify which media or response is commented
 	//itemType = media vs. response
-	public static String getHTMLCodeForMedia(String id,String itemType,String noLike, String noComment, String type, String content, String name, boolean isLocal)
+	public static String getHTMLCodeForMedia(String id,String itemType,int noLike, int noComment, String type, String content, String name, boolean isLocal)
 	{
 		String strMedia = "<span id='#" + id + "#' name='#"  + itemType + "#" + noLike + "#" + noComment + "#'></span>"; ////000#id#1111#type#noLike#noComments#therest
-        String path = "";
-        //if(isLocal)
-            path = content;     //string for text media else path to the local media (photo, audio, video)
-        //if(!isLocal && !type.equalsIgnoreCase("text"))
-        //    path = SharcLibrary.SHARC_MEDIA_FOLDER + content.substring(content.lastIndexOf("/"));//media cached locally
-		//if(!type.equalsIgnoreCase("text") && content.contains("https") )
-		if(!type.equalsIgnoreCase("text"))
+		String path = "";
+		if(isLocal)
+			path = content;     //string for text media else path to the local media (photo, audio, video)
+		//if(!isLocal && !type.equalsIgnoreCase("text"))
+		if(!isLocal)
 			path = SharcLibrary.SHARC_MEDIA_FOLDER + content.substring(content.lastIndexOf("/"));//media cached locally
-        //Show text media in form of Title + Content, else Content + title
-        if(type.equalsIgnoreCase("text"))
-        {
-            strMedia += "<p style='margin-left:20px'>" +  content.replaceAll("(\r\n|\n)", "<br />") + "</p>";
-        }
-        else if(type.equalsIgnoreCase("image"))
-        {
-            strMedia += "<img hspace='20' width='95%' src='" +  path + "' />";
-        }
-        else if(type.equalsIgnoreCase("audio"))
-        {
-            strMedia += "<audio style='margin-left:20px;' width='95%' controls><source src='" + path + "' type='audio/mpeg'></audio>";
-        }
-        else if(type.equalsIgnoreCase("video"))
-        {
-            strMedia += "<video style='margin-left:20px;' width='85%' poster controls><source src='" + path + "'></video>";
-        }
+		//Show text media in form of Title + Content, else Content + title
+		if(type.equalsIgnoreCase("text"))
+		{
+			//strMedia += "<p style='margin-left:20px'>" +  content.replaceAll("(\r\n|\n)", "<br />") + "</p>";
+			//strMedia += "<div><object style='width: 100%; height: 300px; overflow: auto' type='text/html' data='" + path + "' ></object></div>";
+			try {
+				strMedia += "<div style='margin-left:20px'>" +  SharcLibrary.readTextFile(new FileInputStream(path))+  "</div>";
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+		else if(type.equalsIgnoreCase("image"))
+		{
+			strMedia += "<div align='center'><img hspace='20' width='90%' src='" +  path + "' /></div>";
+		}
+		else if(type.equalsIgnoreCase("audio"))
+		{
+			strMedia += "<div align='center'><audio style='margin-left:20px;' width='90%' controls><source src='" + path + "' type='audio/mpeg'></audio></div>";
+		}
+		else if(type.equalsIgnoreCase("video"))
+		{
+			strMedia += "<div align='center'><video style='margin-left:20px;' width='90%' poster controls><source src='" + path + "'></video></div>";
+		}
 
-        if(type.equalsIgnoreCase("text"))
-            strMedia = "<p style='margin-left:20px;font-weight: bold;'>" +  name + "</p>" + strMedia;
-        else
-            strMedia += "<p style='margin-left:20px;font-weight: bold;'>" +  name + "</p>";
-        return strMedia;
+		if(!type.equalsIgnoreCase("text"))
+			strMedia += "<p style='margin-left:20px;font-weight: bold;'>" +  name + "</p>";
+		return strMedia;
 	}
 
     public static void copyFile(InputStream in, OutputStream out) throws Exception {
@@ -199,6 +203,14 @@ public class SharcLibrary
 		Date date = new Date();
 		return dateFormat.format(date).toString();
 	}
+
+	public static String getMySQLDateStamp()	{
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		//get current date time with Date()
+		Date date = new Date();
+		return dateFormat.format(date).toString();
+	}
+
 	public static int hex2Argb(int alpha, String colorStr)
     {
         return Color.argb(

@@ -36,8 +36,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.List;
 
-import uk.lancs.sharc.controller.MainActivity;
-import uk.lancs.sharc.model.MediaModel;
+import uk.lancs.sharc.smat.controller.MainActivity;
+import uk.lancs.sharc.smat.model.MediaModel;
 
 /**
  * Created by SHARC on 11/12/2015.
@@ -58,7 +58,7 @@ public class GoogleDriveCloud extends CloudManager{
 
     public GoogleDriveCloud(Activity activity) {
         super(activity);
-        setCloudType("Google Drive");
+        setCloudType(CloudManager.TYPE_GOOGLE_DRIVE);
         SharedPreferences settings = activity.getPreferences(Context.MODE_PRIVATE);
         mCredential = GoogleAccountCredential.usingOAuth2(
                 activity.getApplicationContext(), Arrays.asList(SCOPES))

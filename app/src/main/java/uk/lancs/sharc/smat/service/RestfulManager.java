@@ -79,17 +79,12 @@ public class RestfulManager {
         new ExperienceDetailsThread().execute(exprienceId.toString());
     }
 
-    public void updateUserExperience(Long experienceId){
-        new UpdateConsumersExperiencesThread().execute(experienceId.toString());
-    }
 
     public void submitResponse(ResponseModel res){
         new SubmitResponseThread(res).execute();
     }
 
-    public void startMockLocationService(String locationId){
-        new MockLocationService().execute(locationId);
-    }
+
     /*
         This inner class helps
             - Get information of all available online experiences
@@ -142,7 +137,7 @@ public class RestfulManager {
                             description.concat(".");
                         String createdDate = objExperience.getString("createdDate");
                         String lastPublishedDate = objExperience.getString("lastPublishedDate");
-                        int designerId = objExperience.getInt("designerId");
+                        Long designerId = objExperience.getLong("designerId");
                         boolean isPublished = true;
                         int moderationMode = objExperience.getInt("moderationMode");
                         String latLng = objExperience.getString("latLng");
@@ -244,70 +239,7 @@ public class RestfulManager {
         }
     }
 
-    /*
-		This inner class helps
-			- Submit info about which users consume which experiences
-		Note this class needs retrieve information from server so it has to run in background
-	*/
-    class UpdateConsumersExperiencesThread extends AsyncTask<String, String, String>
-    {
-        //Before starting the background thread -> Show Progress Dialog
-        private ProgressDialog pDialog;
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            pDialog = new ProgressDialog(activity);
-            pDialog.setMessage("Tracking consumer vs. experiences. Please wait...");
-            pDialog.setIndeterminate(false);
-            pDialog.setCancelable(false);
-            pDialog.show();
-        }
 
-        //Update designer and experience info
-        protected String doInBackground(String... args)
-        {
-            try
-            {
-                JSONParser jParser = new JSONParser();
-                List<NameValuePair> params = new ArrayList<NameValuePair>();
-                //User info
-                String experienceId = args[0];
-                params.add(new BasicNameValuePair("experienceId", experienceId));
-                params.add(new BasicNameValuePair("cloudAccountId", cloudManager.getCloudAccountId()));
-                params.add(new BasicNameValuePair("username", cloudManager.getUserName()));
-                params.add(new BasicNameValuePair("useremail", cloudManager.getUserEmail()));
-                params.add(new BasicNameValuePair("cloudType",cloudManager.getCloudType()));
-                //update MySQL data
-                JSONObject json = jParser.makeHttpRequest(RestfulManager.api_update_consumer_experience, "POST", params);
-                String ret = json.getString("status");
-                if (ret.equalsIgnoreCase(RestfulManager.STATUS_SUCCESS)) {
-                    JSONObject objUser = json.getJSONObject("data");
-                    setUserId(Long.valueOf(objUser.getString("id")));
-                    setApiKey(objUser.getString("apiKey"));
-                    ((MainActivity)activity).getRestfulManager().setUserId(Long.valueOf(objUser.getString("id")));
-                }
-                ((MainActivity)activity).getSelectedExperienceDetail().setIsUpdatedConsumerExperience(true);
-                //smepInteractionLog.addLog(initialLocation, mDbxAcctMgr, InteractionLog.VIEW_ONLINE_EXPERIENCES, logData);
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-            return null;
-        }
-        //After completing background task ->Dismiss the progress dialog
-        protected void onPostExecute(String file_url)
-        {
-            // dismiss the dialog after getting all files
-            pDialog.dismiss();
-            // updating UI from Background Thread
-            activity.runOnUiThread(new Runnable() {
-                public void run() {
-                    //
-                }
-            });
-        }
-    }
 
 
     /*

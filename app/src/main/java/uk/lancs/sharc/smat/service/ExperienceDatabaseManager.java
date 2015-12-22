@@ -15,12 +15,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
 
-import uk.lancs.sharc.model.EOIModel;
-import uk.lancs.sharc.model.ExperienceMetaDataModel;
-import uk.lancs.sharc.model.MediaModel;
-import uk.lancs.sharc.model.POIModel;
-import uk.lancs.sharc.model.ResponseModel;
-import uk.lancs.sharc.model.RouteModel;
+import uk.lancs.sharc.smat.model.EOIModel;
+import uk.lancs.sharc.smat.model.ExperienceMetaDataModel;
+import uk.lancs.sharc.smat.model.MediaModel;
+import uk.lancs.sharc.smat.model.POIModel;
+import uk.lancs.sharc.smat.model.ResponseModel;
+import uk.lancs.sharc.smat.model.RouteModel;
 
 
 public class ExperienceDatabaseManager
@@ -38,6 +38,36 @@ public class ExperienceDatabaseManager
     public List<ExperienceMetaDataModel> getExperiences()
     {
         return ExperienceMetaDataModel.listAll(ExperienceMetaDataModel.class);
+    }
+
+    public void savePoi(POIModel poiModel){
+        poiModel.save();
+    }
+
+    public void saveRoute(RouteModel routeModel){
+        routeModel.save();
+    }
+
+    public void updateRoute(RouteModel routeModel){
+        RouteModel tmpRoute = RouteModel.findById(RouteModel.class, routeModel.getId());
+        if(tmpRoute != null){
+            tmpRoute.setDescription(routeModel.getDescription());
+            tmpRoute.setPath(routeModel.getPathString());
+            tmpRoute.save();
+        }
+    }
+
+    public void deleteRoute(Long id){
+        RouteModel tmpRoute = RouteModel.findById(RouteModel.class, id);
+        if(tmpRoute != null)
+            tmpRoute.delete();
+    }
+
+    public void saveMediaFromResponse(ResponseModel responseModel){
+        //Find media order
+        //First image -> set main media = 1
+        //set POI thumbnail path
+        //mediaModel.save();
     }
 
     public void parseJsonAndSaveToDB(JSONObject jsonExperience) //parse content of an experience from JSON file and download media files
@@ -269,20 +299,23 @@ public class ExperienceDatabaseManager
 	public void deleteMyResponse(Long resID)
 	{
         ResponseModel res = ResponseModel.findById(ResponseModel.class, resID);
-        if(res != null)
+        if(res != null){
+            //Delete media items if it is a POI
+            if(res.getEntityType().equalsIgnoreCase(ResponseModel.FOR_NEW_POI))
+            {
+                ResponseModel.deleteAll(ResponseModel.class, "experience_Id = ? and entity_Id = ?", experienceId.toString(), res.getEntityId());
+            }
             res.delete();
+        }
 	}
 
-	//select
-	public Cursor getDataSQL(String sql, String[] param)
-	{
-		// Gets the data repository in write mode
-		//rawQuery("SELECT id, name FROM people WHERE name = ? AND id = ?", new String[] {"David", "2"});
-		//SQLiteDatabase db = this.getReadableDatabase();
-		//Cursor results = db.rawQuery(sql, param);
-		//return results;
-        return null;
-	}
+    public void removeUploadedResponse(Long resID)
+    {
+        ResponseModel res = ResponseModel.findById(ResponseModel.class, resID);
+        if(res != null)
+            res.delete();
+    }
+
 	
 	public void addOrUpdateExperience(ExperienceMetaDataModel experienceMetaDataModel){
         List<ExperienceMetaDataModel> tmp = ExperienceMetaDataModel.find(ExperienceMetaDataModel.class, "mid = ?", experienceMetaDataModel.getId().toString());
@@ -301,4 +334,12 @@ public class ExperienceDatabaseManager
         ResponseModel.deleteAll(ResponseModel.class, "experience_Id = ?", experienceId.toString());
         ExperienceMetaDataModel.deleteAll(ExperienceMetaDataModel.class, "mid = ?", experienceId.toString());
 	}
+
+    public void updateMediaURL(Long mediaId, String mediaURL){
+        MediaModel mediaModel = MediaModel.findById(MediaModel.class,mediaId);
+        if(mediaModel != null) {
+            mediaModel.setContent(mediaURL);
+            mediaModel.save();
+        }
+    }
 }

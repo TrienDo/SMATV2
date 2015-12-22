@@ -1,8 +1,12 @@
 package uk.lancs.sharc.smat.model;
 
 import java.util.ArrayList;
+import java.util.List;
+
 import android.app.Application;
 import android.location.Location;
+
+import com.orm.SugarApp;
 
 /**
  * <p>This class holds global variables which can be accessed from anywhere in SMEP</p>
@@ -14,10 +18,10 @@ import android.location.Location;
  * Author: Trien Do
  * Date: Feb 2014
  */
-public class SMEPAppVariable extends Application {
+public class SMEPAppVariable extends SugarApp {
 	private boolean testMode;
 	private boolean isNewExperience;
-	private ArrayList<POIModel> allPOIs;
+	private List<POIModel> allPOIs;
 	private boolean resetPOI;
 	private boolean isNewMedia;
 	private boolean isSoundNotification;
@@ -106,11 +110,11 @@ public class SMEPAppVariable extends Application {
 		this.isNewExperience = isNewExperience;
 	}
 
-	public ArrayList<POIModel> getAllPOIs() {
+	public List<POIModel> getAllPOIs() {
 		return allPOIs;
 	}
 
-	public void setAllPOIs(ArrayList<POIModel> allPOIs) {
+	public void setAllPOIs(List<POIModel> allPOIs) {
 		this.allPOIs = allPOIs;
 	}
 

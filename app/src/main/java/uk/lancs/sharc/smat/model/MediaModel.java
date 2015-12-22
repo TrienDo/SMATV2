@@ -1,5 +1,7 @@
 package uk.lancs.sharc.smat.model;
 
+import com.orm.SugarRecord;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
@@ -11,48 +13,64 @@ import uk.lancs.sharc.smat.service.SharcLibrary;
  * Created by SHARC
  * Date: May 2015.
  */
-public class MediaModel {
-    private String id;
-    private String name;
-    private String desc;
-    private String entityType;
+public class MediaModel extends SugarRecord {
+    private Long mid;
+    private Long designerId;
+    private Long experienceId;
+    private String contentType;
     private String content;
     private String context;
-    private String noOfLike;
-    private String noOfComment;
-    private String type;
-    private String entityID;
+    private String name;
+    private String caption;
+    private String entityType;
+    private Long entityId;
+    private int size;
+    private boolean mainMedia;
+    private boolean visible;
+    private int mediaOrder;
+    private int commentCount;
 
-    public MediaModel(String id, String name, String desc, String entityType, String content, String context, String noOfLike, String type, String entityID) {
-        this.id = id;
-        this.name = name;
-        this.desc = desc;
-        this.entityType = entityType;
+    public static final String TYPE_TEXT = "text";
+    public static final String TYPE_IMAGE = "image";
+    public static final String TYPE_AUDIO = "audio";
+    public static final String TYPE_VIDEO = "video";
+
+    public MediaModel(){
+    }
+    public MediaModel(Long id, Long designerId, Long experienceId, String contentType, String content, String context, String name, String caption,
+                      String entityType, Long entityID, int size, boolean mainMedia, boolean visible, int order, int commentCount) {
+        this.mid = id;
+        this.designerId = designerId;
+        this.experienceId = experienceId;
+        this.contentType = contentType;
         this.content = content;
         this.context = context;
-        this.noOfLike = noOfLike;
-        this.type = type;
-        this.entityID = entityID;
+        this.name = name;
+        this.caption = caption;
+        this.name = name;
+        this.caption = caption;
+        this.entityType = entityType;
+        this.entityId = entityID;
+        this.size = size;
+        this.mainMedia = mainMedia;
+        this.visible = visible;
+        this.mediaOrder = order;
+        this.commentCount = commentCount;
     }
 
     public String getHTMLPresentation()
     {
-        return SharcLibrary.getHTMLCodeForMedia(this.getId(), "media", this.getNoOfLike(), this.getNoOfComment(),this.getType(), this.getContent(), this.getName(),false);
+        return SharcLibrary.getHTMLCodeForMedia(this.getId().toString(), "media", this.getNoOfLike(), this.commentCount,this.getContentType(), this.getContent(), this.getCaption(),false);
     }
-    public String getId() {
-        return id;
+    public Long getId() {
+        return mid;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setId(Long id) {
+        this.mid = id;
     }
 
     public String getName() {
-        try {
-            return URLDecoder.decode(name, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
         return name;
     }
 
@@ -60,17 +78,12 @@ public class MediaModel {
         this.name = name;
     }
 
-    public String getDesc() {
-        try {
-            return URLDecoder.decode(desc,"UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return desc;
+    public String getCaption() {
+        return caption;
     }
 
-    public void setDesc(String desc) {
-        this.desc = desc;
+    public void setCaption(String caption) {
+        this.caption = caption;
     }
 
     public String getEntityType() {
@@ -82,14 +95,6 @@ public class MediaModel {
     }
 
     public String getContent() {
-        if(type.equalsIgnoreCase("text"))
-        {
-            try {
-                return URLDecoder.decode(content,"UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-        }
         return content;
     }
 
@@ -105,35 +110,80 @@ public class MediaModel {
         this.context = context;
     }
 
-    public String getNoOfLike() {
-        return noOfLike;
-    }
-
-    public String getNoOfComment() {
-        return noOfComment;
+    public int getNoOfLike() {
+        return 0;
     }
 
     public void setNoOfComment(String noOfComment) {
-        this.noOfComment = noOfComment;
+        //this.noOfComment = noOfComment;
     }
 
     public void setNoOfLike(String noOfLike) {
-        this.noOfLike = noOfLike;
+        //this.noOfLike = noOfLike;
     }
 
-    public String getType() {
-        return type;
+    public String getContentType(){
+        return contentType;
+    }
+    public Long getEntityId() {
+        return entityId;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setEntityId(Long entityId) {
+        this.entityId = entityId;
     }
 
-    public String getEntityID() {
-        return entityID;
+    public Long getDesignerId() {
+        return designerId;
     }
 
-    public void setEntityID(String entityID) {
-        this.entityID = entityID;
+    public void setDesignerId(Long designerId) {
+        this.designerId = designerId;
     }
+
+    public Long getExperienceId() {
+        return experienceId;
+    }
+
+    public void setExperienceId(Long experienceId) {
+        this.experienceId = experienceId;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    public boolean isMainMedia() {
+        return mainMedia;
+    }
+
+    public void setMainMedia(boolean mainMedia) {
+        this.mainMedia = mainMedia;
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+
+    public int getOrder() {
+        return mediaOrder;
+    }
+
+    public void setOrder(int order) {
+        this.mediaOrder = order;
+    }
+
+
 }

@@ -21,8 +21,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
-import uk.lancs.sharc.controller.MainActivity;
-import uk.lancs.sharc.model.MediaModel;
+import uk.lancs.sharc.smat.controller.MainActivity;
+import uk.lancs.sharc.smat.model.MediaModel;
 
 /**
  * Created by SHARC on 11/12/2015.
@@ -37,7 +37,7 @@ public class DropboxCloud extends CloudManager{
 
     public DropboxCloud(Activity activity) {
         super(activity);
-        setCloudType("Dropbox");
+        setCloudType(CloudManager.TYPE_DROPBOX);
     }
 
     @Override

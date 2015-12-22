@@ -1,5 +1,8 @@
 package uk.lancs.sharc.smat.model;
 
+import com.orm.SugarRecord;
+import com.orm.dsl.Ignore;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Hashtable;
@@ -12,58 +15,50 @@ import java.util.List;
  * Author: Trien Do
  * Date: Feb 2015
  **/
-public class EOIModel {
-	private String id;
+public class EOIModel extends SugarRecord {
+	//@Unique
+	private Long mid;
+	private Long designerId;
+	private Long experienceId;
 	private String name;
 	private String description;
-	private String mediaHTMLCode;//All media of a EOI is presented as a HTML page in a webview
-	private String[] mediaOrder;
-	
-	public EOIModel(String mID, String mName, String mDescription, String mMediaHTMLCode, String mediaOrderString)
-	{
-		id = mID;
-		name = mName;
-		description = mDescription;
-		mediaHTMLCode = mMediaHTMLCode;
-		if (mediaOrderString.equalsIgnoreCase(""))
-			this.setMediaOrder(null);
-		else
-			mediaOrder = mediaOrderString.split(" ");
+	private String poiList;
+	private String routeList;
+
+	@Ignore
+	private String mediaHTMLCode;
+
+	public EOIModel(){
 	}
 
+	public EOIModel(Long id, Long designerId, Long experienceId, String name, String description, String poiList, String routeList){
+		this.mid = id;
+		this.designerId = designerId;
+		this.experienceId = experienceId;
+		this.name = name;
+		this.description = description;
+		this.poiList = poiList;
+		this.routeList = routeList;
+	}
+
+	//All media of a EOI is presented as a HTML page in a webview
 	public String getHTMLPresentation(List<MediaModel> mediaList)
 	{
 		String htmlContent = "";
-		Hashtable<String, String> mediaIDList = new Hashtable<String, String>();
 		if(mediaList != null && mediaList.size() > 0)
 		{
 			for (MediaModel media : mediaList)
 			{
 				String strMedia = media.getHTMLPresentation();
 				htmlContent += strMedia;
-				mediaIDList.put(media.getId(), strMedia);
 			}
-            if(mediaOrder != null && mediaOrder.length > 0)
-            {
-                htmlContent = "";//Reorder media
-                for(int i = 0; i < mediaOrder.length; i++)
-                {
-                    if(mediaIDList.get(mediaOrder[i])!=null)
-                        htmlContent += mediaIDList.get(mediaOrder[i]);
-                }
-            }
 		}
-        this.mediaHTMLCode = htmlContent;
+		mediaHTMLCode = htmlContent;
 		return htmlContent;
 	}
 
 	public String getName() {
-        try {
-            return URLDecoder.decode(name,"UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return name;
+		return name;
 	}
 
 	public void setName(String name) {
@@ -71,12 +66,7 @@ public class EOIModel {
 	}
 
 	public String getDescription() {
-        try {
-            return URLDecoder.decode(description,"UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return description;
+		return description;
 	}
 
 	public void setDescription(String description) {
@@ -91,20 +81,11 @@ public class EOIModel {
 		this.mediaHTMLCode = mediaHTMLCode;
 	}
 
-	public String getId() {
-		return id;
+	public Long getId() {
+		return mid;
 	}
 
-	public void setId(String id) {
-		this.id = id;
+	public void setId(Long id) {
+		this.mid = id;
 	}
-
-	public String[] getMediaOrder() {
-		return mediaOrder;
-	}
-
-	public void setMediaOrder(String[] mediaOrder) {
-		this.mediaOrder = mediaOrder;
-	}
-
 }

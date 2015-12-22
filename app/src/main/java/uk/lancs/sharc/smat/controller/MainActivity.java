@@ -4,6 +4,7 @@ import uk.lancs.sharc.smat.model.MapWindowAdapter;
 import uk.lancs.sharc.smat.model.MediaListAdapter;
 import uk.lancs.sharc.smat.service.CloudManager;
 import uk.lancs.sharc.smat.service.ErrorReporter;
+import uk.lancs.sharc.smat.service.ExperienceDatabaseManager;
 import uk.lancs.sharc.smat.service.RestfulManager;
 import uk.lancs.sharc.smat.service.SharcLibrary;
 import uk.lancs.sharc.smat.R;
@@ -36,8 +37,6 @@ import org.json.JSONObject;
 import uk.lancs.sharc.smat.model.POIModel;
 import uk.lancs.sharc.smat.model.RouteModel;
 import uk.lancs.sharc.smat.service.BackgroundService;
-import uk.lancs.sharc.smat.service.DBExperienceDetails;
-import uk.lancs.sharc.smat.service.DBExperienceMetadata;
 import uk.lancs.sharc.smat.model.ExperienceDetailsModel;
 import uk.lancs.sharc.smat.model.ExperienceMetaDataModel;
 import uk.lancs.sharc.smat.service.InteractionLog;
@@ -131,11 +130,6 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
     //constants
     private static final String TAG = "SMAT_MAIN";
     //private static final String url_all_experiences = "http://wraydisplay.lancs.ac.uk/sharcauthoring/php/getPublicProjects.php"; //RESTful apis
-    private static final String url_all_experiences = "http://wraydisplay.lancs.ac.uk/sharcauthoring/php/getUserProjects.php"; //RESTful apis
-    private static final String url_mockLocation = "http://wraydisplay.lancs.ac.uk/sharcauthoring/php/getMockLocation.php";
-    private static final String url_emailDesigner = "http://wraydisplay.lancs.ac.uk/sharcauthoring/php/emailDesigner.php";
-    private static final String url_updateDesignerExperience = "http://wraydisplay.lancs.ac.uk/sharcauthoring/php/updateDesignerExperience.php";
-    private static final String url_updatePublishedExperience = "http://wraydisplay.lancs.ac.uk/sharcauthoring/php/publicProjectFromSmat.php";
     private static final int LOCATION_INTERVAL = 1;
     private static final float LOCATION_DISTANCE = 3f;
     private static final float FONT_SIZE = 18f;
@@ -163,15 +157,16 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
     private ProgressDialog pDialog;         //dialog shows waiting icon when downloading data
 
     //Experience
-    private ArrayList<ExperienceMetaDataModel> allExperienceMetaData = new ArrayList<ExperienceMetaDataModel>();//Store all available experiences (either online or cached)
+    private List<ExperienceMetaDataModel> allExperienceMetaData = new ArrayList<ExperienceMetaDataModel>();//Store all available experiences (either online or cached)
 
     public ExperienceDetailsModel getSelectedExperienceDetail() {
         return selectedExperienceDetail;
     }
+    private ExperienceDatabaseManager experienceDatabaseManager = new ExperienceDatabaseManager();
 
     private ExperienceDetailsModel selectedExperienceDetail;                                                    //Details of the current experience
-    DBExperienceMetadata experienceMetaDB = new DBExperienceMetadata(this);                                     //DB stores metadata of all experiences
-    private ArrayList<Integer> nearbyExperiences = new ArrayList<Integer>();                                    //Array of IDs of Experiences within 5 km
+
+    private List<Integer> nearbyExperiences = new ArrayList<Integer>();                                    //Array of IDs of Experiences within 5 km
 
     private RouteModel curRoute = null; //For recording a route
     private Marker startRoute;
@@ -1031,7 +1026,7 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
     public void displayMediaTab(int poiID,String type)
     {
         currentPOIIndex = poiID;
-        ArrayList<String> mediaList = selectedExperienceDetail.getPOIHtmlListItems(poiID, initialLocation);
+        List<String> mediaList = selectedExperienceDetail.getPOIHtmlListItems(poiID, initialLocation);
         displayMediaItems(mediaList, 0);
 
         if(smepSettings.isPushingMedia())   //Push -> Go to the POI Media tab
@@ -1068,7 +1063,7 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
     }
 
     //Show info of an EOI when the user clicks on a button in the Point of Interest's media tab
-    public void showSelectedEOI(final String EoiID)
+    public void showSelectedEOI(final Long EoiID)
     {
         //Work around error "Calling View methods on another thread than the UI thread"
         runOnUiThread(new Runnable() {
@@ -1251,9 +1246,10 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
                     createExperience();
                 } else {
                     String exDesc = "This experience was initially authored using " + getString(R.string.app_name) + " - V" + getString(R.string.app_version) + " at " + new Date().toString();
-                    ExperienceMetaDataModel selectedExperienceMeta = new ExperienceMetaDataModel(exName, exName + new Date().getTime(), exDesc, new Date().toString(), "SMAT (sharc@gmail.com)", "###SMAT###", initialLocation.latitude + " " + initialLocation.longitude);
-                    experienceMetaDB.insertExperience(selectedExperienceMeta.getProName(), selectedExperienceMeta.getProPath(), selectedExperienceMeta.getProDesc(), selectedExperienceMeta.getProDate(), selectedExperienceMeta.getProAuthID(), selectedExperienceMeta.getProPublicURL(), selectedExperienceMeta.getProLocation());
-                    selectedExperienceDetail = new ExperienceDetailsModel(new DBExperienceDetails(MainActivity.this, selectedExperienceMeta.getProPath()), true);
+                    ExperienceMetaDataModel selectedExperienceMeta = new ExperienceMetaDataModel(0, exName, exDesc, SharcLibrary.getMySQLDateStamp(), SharcLibrary.getMySQLDateStamp(),
+                            Long.valueOf(-1), false, 1, initialLocation.latitude + " " + initialLocation.longitude, "", "", "", 0, "");
+                    experienceDatabaseManager.addOrUpdateExperience(selectedExperienceMeta);
+                    selectedExperienceDetail = new ExperienceDetailsModel(experienceDatabaseManager, true);
                     selectedExperienceDetail.setMetaData(selectedExperienceMeta);
                     getSlidingMenu().toggle();
                     clearMap(true);
@@ -1270,182 +1266,11 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
         //smepInteractionLog.takeScreenShot();
     }
 
-
-    /*
-        This inner class helps
-            - Get information of all available online experiences
-            - Present each experience as a marker on Google Maps
-            - Add the Click listener even for each marker
-        Note this class needs retrieve information from server so it has to run in background
-    */
-    class GetAllOnlineExperiencesThread extends AsyncTask<String, String, String>
-    {
-        //Before starting the background thread -> Show Progress Dialog
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            pDialog = new ProgressDialog(MainActivity.this);
-            pDialog.setMessage("Loading available experiences. Please wait...");
-            pDialog.setIndeterminate(false);
-            pDialog.setCancelable(false);
-            pDialog.show();
-        }
-
-        //Get all available experiences
-        protected String doInBackground(String... args)
-        {
-            try
-            {
-                // Building Parameters
-                JSONParser jParser = new JSONParser();
-                List<NameValuePair> params = new ArrayList<NameValuePair>();
-                params.add(new BasicNameValuePair("proAuthID", mDbxAcctMgr.getLinkedAccount().getUserId()));
-                // Getting result in form of a JSON string from a Web RESTful
-                JSONObject json = jParser.makeHttpRequest(url_all_experiences, "POST", params);
-
-                int success = json.getInt("success");
-                if (success == 1)
-                {
-                    // Get Array of experiences
-                    JSONArray sharcFiles = json.getJSONArray("projects");
-
-                    // Loop through all experiences
-                    ExperienceMetaDataModel tmpExperience;
-                    String logData = "";
-                    for (int i = 0; i < sharcFiles.length(); i++)
-                    {
-                        JSONObject c = sharcFiles.getJSONObject(i);
-
-                        // Storing each json item in variable
-                        String name = c.getString("proName");
-                        String path = c.getString("proPath");
-                        String desc = c.getString("proDesc");
-                        if(desc.length() > 0 && desc.charAt(desc.length()-1) != '.')
-                            desc.concat(".");
-                        String date = c.getString("proDate");
-                        String authName = c.getString("userName");
-                        String authEmail = c.getString("userEmail");
-                        String authID = authName.concat(" (") + authEmail + ")";
-                        String publicURL = c.getString("proPublicURL");
-                        String location = c.getString("proLocation");
-                        String summary = c.getString("proSummary");
-                        if (summary == null)
-                            summary = "";
-                        if(location.length()<6)
-                            continue;
-                        //tmpExperience = new ExperienceMetaDataModel(name, path, desc, date, authID, authName, authEmail, publicURL, location);
-                        tmpExperience = new ExperienceMetaDataModel(name, path, summary + desc, date, authID, publicURL, location);
-                        logData += "#" + tmpExperience.getProName();
-                        allExperienceMetaData.add(tmpExperience);
-                    }
-                    smepInteractionLog.addLog(initialLocation, mDbxAcctMgr, InteractionLog.VIEW_ONLINE_EXPERIENCES, logData);
-                }
-                else
-                {
-                    Toast.makeText(getApplicationContext(), json.getString("message") ,Toast.LENGTH_LONG).show();
-                }
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        //After completing background task ->Dismiss the progress dialog
-        protected void onPostExecute(String file_url)
-        {
-            // dismiss the dialog after getting all files
-            pDialog.dismiss();
-            // updating UI from Background Thread
-            runOnUiThread(new Runnable()
-            {
-                public void run()
-                {
-                    //Updating parsed JSON data into ListView
-                    displayAllExperienceMetaData(true);
-                    addOnlineExperienceMarkerListener();
-                }
-            });
-        }
-    }
-
-    /*
-        This inner class helps
-            - Download a snapshot (JSON file) of an experience from Dropbox
-            - Download all media files from Dropbox
-            - Present the experience
-        Note this class needs retrieve information from server so it has to run in background
-    */
-    class ExperienceDetailsThread extends AsyncTask<String, String, String>
-    {
-        //Before starting background thread -> Show Progress Dialog
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            pDialog = new ProgressDialog(MainActivity.this);
-            pDialog.setMessage("Loading the experience. Please wait...");
-            pDialog.setIndeterminate(false);
-            pDialog.setCancelable(false);
-            pDialog.show();
-        }
-
-        protected String doInBackground(String... f_url)
-        {
-            try
-            {
-                URL url = new URL(f_url[0]);
-                //Read content of the experience in a JSON file on Dropbox
-                BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
-                String jsonString = "";
-                String str;
-                while ((str = in.readLine()) != null) {
-                    jsonString += str; // str is one line of text; readLine() strips the newline character(s)
-                }
-                in.close();
-                selectedExperienceDetail.getExperienceFromSnapshotOnDropbox(jsonString);
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        //After completing background task -> Dismiss the progress dialog
-        protected void onPostExecute(String file_url)
-        {
-            // dismiss the dialog after getting all files
-            pDialog.dismiss();
-            // updating UI from Background Thread
-            runOnUiThread(new Runnable()
-            {
-                public void run()
-                {
-                    //Render the experience
-                    presentExperience();
-                }
-            });
-        }
-    }
-
     public void getAllExperienceMetaDataFromLocalDatabase()
     {
         clearMap(false);
-        Cursor epxRets = experienceMetaDB.getExperiences();
-        String logData = "";
-        if(epxRets.getCount()>0)
-        {
-            ExperienceMetaDataModel tmpExperience;
-            epxRets.moveToFirst();
-            do
-            {
-                tmpExperience = new ExperienceMetaDataModel(epxRets.getString(1), epxRets.getString(0), epxRets.getString(2), epxRets.getString(3), epxRets.getString(4), epxRets.getString(5), epxRets.getString(6));
-                logData += "#" + tmpExperience.getProName();
-                allExperienceMetaData.add(tmpExperience);
-            }
-            while (epxRets.moveToNext());
-        }
+        allExperienceMetaData = experienceDatabaseManager.getExperiences();
+        String logData = allExperienceMetaData.toString();
         smepInteractionLog.addLog(initialLocation, mDbxAcctMgr, InteractionLog.VIEW_CACHED_EXPERIENCES, logData);
         displayAllExperienceMetaData(false);
     }
@@ -1584,15 +1409,6 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
         return true;
     }
 
-    public void deleteSQLiteDB(String dbName) {
-        File dDB = new File(SharcLibrary.SHARC_DATABASE_FOLDER + File.separator + dbName);
-        File jDB = new File(SharcLibrary.SHARC_DATABASE_FOLDER + File.separator + dbName + "-journal");
-        if (dDB.exists())
-            dDB.delete();
-        if (jDB.exists())
-            jDB.delete();
-    }
-
     public void showNearByExperienceList(final CharSequence[] items, final boolean isOnline)
     {
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
@@ -1658,7 +1474,7 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
             setDialogFontSizeAndShow(alert, FONT_SIZE);
         }
         selectedExperienceDetail.renderAllEOIs();
-        selectedExperienceDetail.getMediaStat();
+        selectedExperienceDetail.getMediaStatFromDB();
         //bound for the whole experience
         LatLngBounds bounds = selectedExperienceDetail.getGeographicalBoundary();
         if(bounds != null)
@@ -2135,6 +1951,26 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
                     displayDropboxUser(dbUser);
                 }
             });
+        }
+    }
+
+    public void displayUserDetail()
+    {
+        TextView txtUsername = (TextView) findViewById(R.id.txtUsername);
+        TextView txtUseremail = (TextView) findViewById(R.id.txtUseremail);
+
+        if(cloudManager != null && cloudManager.isLoggedin())
+        {
+            txtUseremail.setText(cloudManager.getUserEmail());
+            txtUsername.setText(cloudManager.getUserName());
+            restfulManager.setCloudManager(cloudManager);
+            //track which users consume which experiences
+        }
+        else
+        {
+            //Prompt to login
+            txtUsername.setText("Log in to submit responses");
+            txtUseremail.setText("(With Dropbox/Google Drive acc)");
         }
     }
 
@@ -3473,6 +3309,11 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
             setDialogFontSizeAndShow(alert, FONT_SIZE);
         }
     }
+
+    public List<ExperienceMetaDataModel> getAllExperienceMetaData(){
+        return allExperienceMetaData;
+    }
+
     public CloudManager getCloudManager() {
         return cloudManager;
     }
