@@ -17,9 +17,9 @@ import com.orm.SugarRecord;
 
 public class POIModel extends SugarRecord {
 	//@Unique
-	private Long mid;
-	private Long designerId;
-	private Long experienceId;
+	private String mid;
+	private String designerId;
+	private String experienceId;
 
 	private String name;
 	private String description;
@@ -35,7 +35,7 @@ public class POIModel extends SugarRecord {
 	public POIModel(){
 
 	}
-	public POIModel(Long id, String name, String description, String coordinate, String triggerZone, Long designerId, Long experienceId, String typeList, String eoiList, String routeList, String thumbnailPath, int mediaCount, int responseCount)
+	public POIModel(String id, String name, String description, String coordinate, String triggerZone, String designerId, String experienceId, String typeList, String eoiList, String routeList, String thumbnailPath, int mediaCount, int responseCount)
 	{
 		this.mid = id;
 		this.name = name;
@@ -52,7 +52,7 @@ public class POIModel extends SugarRecord {
 		this.responseCount = responseCount;
 	}
 
-	public Long getId(){
+	public String getPoiId(){
 		return mid;
 	}
 

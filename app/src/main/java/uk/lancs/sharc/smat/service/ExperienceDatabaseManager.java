@@ -25,12 +25,12 @@ import uk.lancs.sharc.smat.model.RouteModel;
 
 public class ExperienceDatabaseManager
 {
-	private Long experienceId;
+	private String experienceId;
 	public ExperienceDatabaseManager() {
-        experienceId = Long.valueOf(-1);
+        experienceId = "-1";
     }
 
-    public void setSelectedExperience(Long experienceId){
+    public void setSelectedExperience(String experienceId){
         this.experienceId = experienceId;
     }
 
@@ -53,14 +53,13 @@ public class ExperienceDatabaseManager
         if(tmpRoute != null){
             tmpRoute.setDescription(routeModel.getDescription());
             tmpRoute.setPath(routeModel.getPathString());
+            tmpRoute.setRouteId(routeModel.getRouteId());
             tmpRoute.save();
         }
     }
 
-    public void deleteRoute(Long id){
-        RouteModel tmpRoute = RouteModel.findById(RouteModel.class, id);
-        if(tmpRoute != null)
-            tmpRoute.delete();
+    public void deleteRoute(String id){
+        RouteModel.deleteAll(RouteModel.class, "mid = ?", id);
     }
 
     public void saveMediaFromResponse(ResponseModel responseModel){
@@ -82,8 +81,8 @@ public class ExperienceDatabaseManager
             for(int i = 0; i < jsonEntityList.length(); i++){
                 JSONObject jsonEntity = jsonEntityList.getJSONObject(i);
                 JSONObject jsonEntityDesigner = jsonEntity.getJSONObject("poiDesigner");
-                this.insertPOI(jsonEntity.getLong("id"),jsonEntityDesigner.getString("name"), jsonEntity.getString("description"), jsonEntityDesigner.getString("coordinate"),
-                        jsonEntityDesigner.getString("triggerZone"),jsonEntityDesigner.getLong("designerId"), jsonEntity.getLong("experienceId"), jsonEntity.getString("typeList"),
+                this.insertPOI(jsonEntity.getString("id"),jsonEntityDesigner.getString("name"), jsonEntity.getString("description"), jsonEntityDesigner.getString("coordinate"),
+                        jsonEntityDesigner.getString("triggerZone"),jsonEntityDesigner.getString("designerId"), jsonEntity.getString("experienceId"), jsonEntity.getString("typeList"),
                         jsonEntity.getString("eoiList"), jsonEntity.getString("routeList"), jsonEntity.getString("thumbnail"), jsonEntity.getInt("mediaCount"), jsonEntity.getInt("responseCount"));
             }
 
@@ -91,7 +90,7 @@ public class ExperienceDatabaseManager
             for(int i = 0; i < jsonEntityList.length(); i++){
                 JSONObject jsonEntity = jsonEntityList.getJSONObject(i);
                 JSONObject jsonEntityDesigner = jsonEntity.getJSONObject("eoiDesigner");
-                this.insertEOI(jsonEntity.getLong("id"), jsonEntityDesigner.getLong("designerId"), jsonEntity.getLong("experienceId"), jsonEntityDesigner.getString("name"),
+                this.insertEOI(jsonEntity.getString("id"), jsonEntityDesigner.getString("designerId"), jsonEntity.getString("experienceId"), jsonEntityDesigner.getString("name"),
                         jsonEntityDesigner.getString("description"), jsonEntity.getString("poiList"), jsonEntity.getString("routeList"));
             }
 
@@ -99,7 +98,7 @@ public class ExperienceDatabaseManager
             for(int i = 0; i < jsonEntityList.length(); i++){
                 JSONObject jsonEntity = jsonEntityList.getJSONObject(i);
                 JSONObject jsonEntityDesigner = jsonEntity.getJSONObject("routeDesigner");
-                this.insertROUTE(jsonEntity.getLong("id"), jsonEntityDesigner.getLong("designerId"), jsonEntity.getLong("experienceId"), jsonEntityDesigner.getString("name"),
+                this.insertROUTE(jsonEntity.getString("id"), jsonEntityDesigner.getString("designerId"), jsonEntity.getString("experienceId"), jsonEntityDesigner.getString("name"),
                         jsonEntity.getString("description"), jsonEntityDesigner.getInt("directed") == 1 ? true : false, jsonEntityDesigner.getString("colour"), jsonEntityDesigner.getString("path"),
                         jsonEntity.getString("poiList"), jsonEntity.getString("eoiList"));
             }
@@ -109,9 +108,9 @@ public class ExperienceDatabaseManager
                 JSONObject jsonEntity = jsonEntityList.getJSONObject(i);
                 JSONObject jsonEntityDesigner = jsonEntity.getJSONObject("mediaDesigner");
 
-                this.insertMEDIA(jsonEntity.getLong("id"), jsonEntityDesigner.getLong("designerId"), jsonEntity.getLong("experienceId"), jsonEntityDesigner.getString("contentType"),
+                this.insertMEDIA(jsonEntity.getString("id"), jsonEntityDesigner.getString("designerId"), jsonEntity.getString("experienceId"), jsonEntityDesigner.getString("contentType"),
                         jsonEntityDesigner.getString("content"), jsonEntity.getString("context"), jsonEntityDesigner.getString("name"),
-                        jsonEntity.getString("caption"), jsonEntity.getString("entityType"), jsonEntity.getLong("entityId"),
+                        jsonEntity.getString("caption"), jsonEntity.getString("entityType"), jsonEntity.getString("entityId"),
                         jsonEntityDesigner.getInt("size"), jsonEntity.getInt("mainMedia") == 1 ? true: false, jsonEntity.getInt("visible") == 1 ? true : false, jsonEntity.getInt("order"), jsonEntity.getInt("commentCount"));
                 //Download media
                 donwloadMediaFile(jsonEntityDesigner.getString("content"));
@@ -121,7 +120,7 @@ public class ExperienceDatabaseManager
             for(int i = 0; i < jsonEntityList.length(); i++){
                 JSONObject jsonEntity = jsonEntityList.getJSONObject(i);
 
-                this.insertResponse(jsonEntity.getString("id"), jsonEntity.getLong("experienceId"), jsonEntity.getString("userId"), jsonEntity.getString("contentType"),
+                this.insertResponse(jsonEntity.getString("id"), jsonEntity.getString("experienceId"), jsonEntity.getString("userId"), jsonEntity.getString("contentType"),
                         jsonEntity.getString("content"), jsonEntity.getString("description"), jsonEntity.getString("entityType"), jsonEntity.getString("entityId"),
                         jsonEntity.getString("status"), jsonEntity.getInt("size"), jsonEntity.getString("submittedDate"));
                 //Download media
@@ -175,70 +174,70 @@ public class ExperienceDatabaseManager
     {
         //Cursor statRet = this.getDataSQL("select type, count(*) as total from MEDIA group by type", null);
         //Can optimise later
-        List<MediaModel> mediaList = MediaModel.find(MediaModel.class, "experience_Id = ? and content_Type = ?", String.valueOf(this.experienceId), MediaModel.TYPE_TEXT);
+        List<MediaModel> mediaList = MediaModel.find(MediaModel.class, "experience_Id = ? and content_Type = ?", this.experienceId, MediaModel.TYPE_TEXT);
         metaData.setTextCount(mediaList.size());
-        mediaList = MediaModel.find(MediaModel.class, "experience_Id = ? and content_Type = ?", String.valueOf(this.experienceId), MediaModel.TYPE_IMAGE);
+        mediaList = MediaModel.find(MediaModel.class, "experience_Id = ? and content_Type = ?", this.experienceId, MediaModel.TYPE_IMAGE);
         metaData.setImageCount(mediaList.size());
-        mediaList = MediaModel.find(MediaModel.class, "experience_Id = ? and content_Type = ?", String.valueOf(this.experienceId), MediaModel.TYPE_AUDIO);
+        mediaList = MediaModel.find(MediaModel.class, "experience_Id = ? and content_Type = ?", this.experienceId, MediaModel.TYPE_AUDIO);
         metaData.setAudioCount(mediaList.size());
-        mediaList = MediaModel.find(MediaModel.class, "experience_Id = ? and content_Type = ?", String.valueOf(this.experienceId), MediaModel.TYPE_VIDEO);
+        mediaList = MediaModel.find(MediaModel.class, "experience_Id = ? and content_Type = ?", this.experienceId, MediaModel.TYPE_VIDEO);
         metaData.setVideoCount(mediaList.size());
     }
 
-    public List<MediaModel> getMediaForEntity(Long entityId, String entityType)
+    public List<MediaModel> getMediaForEntity(String entityId, String entityType)
     {
-    	return MediaModel.find(MediaModel.class, "experience_Id = ? and entity_Id = ? and entity_Type = ?", String.valueOf(this.experienceId), String.valueOf(entityId) , entityType);
+    	return MediaModel.find(MediaModel.class, "experience_Id = ? and entity_Id = ? and entity_Type = ?", this.experienceId, entityId , entityType);
     }
 
-	public List<ResponseModel> getCommentsForEntity(Long entityId)
+	public List<ResponseModel> getCommentsForEntity(String entityId)
 	{
 		return ResponseModel.find(ResponseModel.class, "experience_Id = ? and entity_Id = ? and entity_Type = 'media' and status = ?",
-                String.valueOf(this.experienceId), entityId.toString(), ResponseModel.STATUS_ACCEPTED);
+                this.experienceId, entityId, ResponseModel.STATUS_ACCEPTED);
 	}
 
-    public List<ResponseModel> getResponsesForEntity(Long entityId, String entityType)
+    public List<ResponseModel> getResponsesForEntity(String entityId, String entityType)
     {
         return ResponseModel.find(ResponseModel.class, "experience_Id = ? and entity_Id = ? and entity_Type = ? and status = ?",
-                String.valueOf(this.experienceId), String.valueOf(entityId), entityType, ResponseModel.STATUS_ACCEPTED);
+                this.experienceId, entityId, entityType, ResponseModel.STATUS_ACCEPTED);
     }
 
     public List<ResponseModel> getMyResponses()
     {
         return ResponseModel.find(ResponseModel.class, "experience_Id = ? and status = ?",
-                String.valueOf(this.experienceId), ResponseModel.STATUS_FOR_UPLOAD);
+                this.experienceId, ResponseModel.STATUS_FOR_UPLOAD);
     }
 
     public List<POIModel> getAllPOIs()
     {
-        return POIModel.find(POIModel.class, "experience_Id = ?", this.experienceId.toString());
+        return POIModel.find(POIModel.class, "experience_Id = ?", this.experienceId);
     }
 
     public List<EOIModel> getAllEOIs()
     {
-        return EOIModel.find(EOIModel.class, "experience_Id = ?", this.experienceId.toString());
+        return EOIModel.find(EOIModel.class, "experience_Id = ?", this.experienceId);
     }
 
     public List<RouteModel> getAllRoutes()
     {
-        return RouteModel.find(RouteModel.class, "experience_Id = ?", this.experienceId.toString());
+        return RouteModel.find(RouteModel.class, "experience_Id = ?", this.experienceId);
     }
 
 	public List<ResponseModel> getResponsesForTab(String tabName)//EOI and Summary tabs
 	{
 		List<ResponseModel> responseList = ResponseModel.find(ResponseModel.class, "experience_Id = ? and entity_Type = ? and status = ?",
-            String.valueOf(this.experienceId), tabName, ResponseModel.STATUS_ACCEPTED);
+            this.experienceId, tabName, ResponseModel.STATUS_ACCEPTED);
 		for (int i = 0; i < responseList.size(); i++) {
-			List<ResponseModel> comments = this.getCommentsForEntity(responseList.get(i).getId());
+			List<ResponseModel> comments = this.getCommentsForEntity(responseList.get(i).getId().toString());
             //responseList.get(i).setNoOfComment(String.valueOf(comments.size()));
 		}
 		return responseList;
 	}
 
 	/*
-	public String getRepresentativePhoto(Long id)
+	public String getRepresentativePhoto(String id)
     {
         List<MediaModel> mainMedia =  MediaModel.find(MediaModel.class, "experienceID = ? and entityId = ? and entityType = ? and mainMedia = 1",
-                String.valueOf(this.experienceId), id.toString(), "POI");
+                this.experienceId, id, "POI");
         if(mainMedia != null && mainMedia.size() > 0)
             return mainMedia.get(0).getContent();
         else
@@ -249,7 +248,7 @@ public class ExperienceDatabaseManager
 
 	public String[] getEOIFromID(String eoiId)
     {
-        List<EOIModel> objEoi =  EOIModel.find(EOIModel.class, "experience_Id = ? and id = ?", String.valueOf(this.experienceId), eoiId);
+        List<EOIModel> objEoi =  EOIModel.find(EOIModel.class, "experience_Id = ? and id = ?", this.experienceId, eoiId);
         if(objEoi != null && objEoi.size() > 0){
             return new String[]{objEoi.get(0).getName(), objEoi.get(0).getDescription()};
     	}
@@ -259,32 +258,32 @@ public class ExperienceDatabaseManager
 
 
 	//insert
-	public void insertPOI(Long id, String name, String description, String coordinate, String triggerZone, Long designerId, Long experienceId, String typeList, String eoiList, String routeList, String thumbnailPath, int mediaCount, int responseCount)
+	public void insertPOI(String id, String name, String description, String coordinate, String triggerZone, String designerId, String experienceId, String typeList, String eoiList, String routeList, String thumbnailPath, int mediaCount, int responseCount)
 	{
 		POIModel objPOI = new POIModel(id, name, description, coordinate, triggerZone, designerId, experienceId, typeList, eoiList, routeList, thumbnailPath, mediaCount, responseCount);
 		objPOI.save();
 	}
 	
-	public void insertEOI(Long id, Long designerId, Long experienceId, String name, String description, String poiList, String routeList)
+	public void insertEOI(String id, String designerId, String experienceId, String name, String description, String poiList, String routeList)
 	{
 		EOIModel objEOI = new EOIModel(id, designerId, experienceId, name, description, poiList, routeList);
         objEOI.save();
 	}
 	
-	public void insertROUTE(Long id, Long designerId, Long experienceId, String name, String description,boolean directed, String colour, String path, String poiList, String eoiList)
+	public void insertROUTE(String id, String designerId, String experienceId, String name, String description,boolean directed, String colour, String path, String poiList, String eoiList)
 	{
         RouteModel objRoute = new RouteModel(id, designerId, experienceId, name, description, directed, colour, path, poiList, eoiList);
         objRoute.save();
 	}
 	
-	public void insertMEDIA(Long id, Long designerId, Long experienceId, String contentType, String content, String context, String name, String caption,
-                                      String entityType, Long entityID, int size, boolean mainMedia, boolean visible, int order, int commentCount)
+	public void insertMEDIA(String id, String designerId, String experienceId, String contentType, String content, String context, String name, String caption,
+                                      String entityType, String entityID, int size, boolean mainMedia, boolean visible, int order, int commentCount)
 	{
         MediaModel objMedia = new MediaModel(id, designerId, experienceId, contentType, content, context, name, caption, entityType, entityID, size, mainMedia, visible, order, commentCount);
         objMedia.save();
 	}
 	
-	public void insertResponse(String mid, Long experienceId, String userId, String contentType, String content, String description,
+	public void insertResponse(String mid, String experienceId, String userId, String contentType, String content, String description,
                                String entityType, String entityId, String status, int size, String submittedDate)
 	{
         ResponseModel objResponse = new ResponseModel(mid, experienceId, userId, contentType, content, description, entityType, entityId, status, size, submittedDate);
@@ -303,7 +302,7 @@ public class ExperienceDatabaseManager
             //Delete media items if it is a POI
             if(res.getEntityType().equalsIgnoreCase(ResponseModel.FOR_NEW_POI))
             {
-                ResponseModel.deleteAll(ResponseModel.class, "experience_Id = ? and entity_Id = ?", experienceId.toString(), res.getEntityId());
+                ResponseModel.deleteAll(ResponseModel.class, "experience_Id = ? and entity_Id = ?", experienceId, res.getEntityId());
             }
             res.delete();
         }
@@ -318,21 +317,34 @@ public class ExperienceDatabaseManager
 
 	
 	public void addOrUpdateExperience(ExperienceMetaDataModel experienceMetaDataModel){
-        List<ExperienceMetaDataModel> tmp = ExperienceMetaDataModel.find(ExperienceMetaDataModel.class, "mid = ?", experienceMetaDataModel.getId().toString());
+        List<ExperienceMetaDataModel> tmp = ExperienceMetaDataModel.find(ExperienceMetaDataModel.class, "mid = ?", experienceMetaDataModel.getExperienceId());
         if(tmp.size() > 0) {//already there -> delete all data
-            this.deleteExperience(experienceMetaDataModel.getId());
+            this.deleteExperience(experienceMetaDataModel.getExperienceId());
             tmp.get(0).delete();
         }
         experienceMetaDataModel.save();
     }
-    public void deleteExperience(Long experienceId)
+
+    public String addNewExperience(ExperienceMetaDataModel experienceMetaDataModel){
+        List<ExperienceMetaDataModel> tmp = ExperienceMetaDataModel.find(ExperienceMetaDataModel.class, "name like ?", experienceMetaDataModel.getProName());
+        if(tmp.size() > 0) {//already there -> delete all data
+            return "-1";
+        }
+        experienceMetaDataModel.save();
+        String exId = experienceMetaDataModel.getExperienceId();
+        experienceMetaDataModel.setExperienceId(exId);
+        experienceMetaDataModel.save();
+        return exId;
+    }
+
+    public void deleteExperience(String experienceId)
 	{
-		POIModel.deleteAll(POIModel.class,"experience_Id = ?", experienceId.toString());
-        EOIModel.deleteAll(EOIModel.class,"experience_Id = ?", experienceId.toString());
-        RouteModel.deleteAll(RouteModel.class, "experience_Id = ?", experienceId.toString());
-        MediaModel.deleteAll(MediaModel.class, "experience_Id = ?", experienceId.toString());
-        ResponseModel.deleteAll(ResponseModel.class, "experience_Id = ?", experienceId.toString());
-        ExperienceMetaDataModel.deleteAll(ExperienceMetaDataModel.class, "mid = ?", experienceId.toString());
+		POIModel.deleteAll(POIModel.class,"experience_Id = ?", experienceId);
+        EOIModel.deleteAll(EOIModel.class,"experience_Id = ?", experienceId);
+        RouteModel.deleteAll(RouteModel.class, "experience_Id = ?", experienceId);
+        MediaModel.deleteAll(MediaModel.class, "experience_Id = ?", experienceId);
+        ResponseModel.deleteAll(ResponseModel.class, "experience_Id = ?", experienceId);
+        ExperienceMetaDataModel.deleteAll(ExperienceMetaDataModel.class, "mid = ?", experienceId);
 	}
 
     public void updateMediaURL(Long mediaId, String mediaURL){

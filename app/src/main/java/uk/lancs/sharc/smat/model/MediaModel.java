@@ -2,9 +2,6 @@ package uk.lancs.sharc.smat.model;
 
 import com.orm.SugarRecord;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-
 import uk.lancs.sharc.smat.service.SharcLibrary;
 
 /**
@@ -14,16 +11,16 @@ import uk.lancs.sharc.smat.service.SharcLibrary;
  * Date: May 2015.
  */
 public class MediaModel extends SugarRecord {
-    private Long mid;
-    private Long designerId;
-    private Long experienceId;
+    private String mid;
+    private String designerId;
+    private String experienceId;
     private String contentType;
     private String content;
     private String context;
     private String name;
     private String caption;
     private String entityType;
-    private Long entityId;
+    private String entityId;
     private int size;
     private boolean mainMedia;
     private boolean visible;
@@ -37,8 +34,8 @@ public class MediaModel extends SugarRecord {
 
     public MediaModel(){
     }
-    public MediaModel(Long id, Long designerId, Long experienceId, String contentType, String content, String context, String name, String caption,
-                      String entityType, Long entityID, int size, boolean mainMedia, boolean visible, int order, int commentCount) {
+    public MediaModel(String id, String designerId, String experienceId, String contentType, String content, String context, String name, String caption,
+                      String entityType, String entityID, int size, boolean mainMedia, boolean visible, int order, int commentCount) {
         this.mid = id;
         this.designerId = designerId;
         this.experienceId = experienceId;
@@ -60,13 +57,13 @@ public class MediaModel extends SugarRecord {
 
     public String getHTMLPresentation()
     {
-        return SharcLibrary.getHTMLCodeForMedia(this.getId().toString(), "media", this.getNoOfLike(), this.commentCount,this.getContentType(), this.getContent(), this.getCaption(),false);
+        return SharcLibrary.getHTMLCodeForMedia(this.getMediaId().toString(), "media", this.getNoOfLike(), this.commentCount,this.getContentType(), this.getContent(), this.getCaption(),false);
     }
-    public Long getId() {
+    public String getMediaId() {
         return mid;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.mid = id;
     }
 
@@ -125,27 +122,27 @@ public class MediaModel extends SugarRecord {
     public String getContentType(){
         return contentType;
     }
-    public Long getEntityId() {
+    public String getEntityId() {
         return entityId;
     }
 
-    public void setEntityId(Long entityId) {
+    public void setEntityId(String entityId) {
         this.entityId = entityId;
     }
 
-    public Long getDesignerId() {
+    public String getDesignerId() {
         return designerId;
     }
 
-    public void setDesignerId(Long designerId) {
+    public void setDesignerId(String designerId) {
         this.designerId = designerId;
     }
 
-    public Long getExperienceId() {
+    public String getExperienceId() {
         return experienceId;
     }
 
-    public void setExperienceId(Long experienceId) {
+    public void setExperienceId(String experienceId) {
         this.experienceId = experienceId;
     }
 

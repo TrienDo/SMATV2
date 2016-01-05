@@ -10,12 +10,12 @@ import com.orm.SugarRecord;
  * Date: Feb 2015
  **/
 public class ExperienceMetaDataModel extends SugarRecord {
-	private Long mid;//note: dont use id because SugarORM already uses this id
+	private String mid;//note: dont use id because SugarORM already uses this id
 	private String name;
 	String description;
 	String createdDate;
 	String lastPublishedDate;
-	Long designerId;
+	String designerId;
 	boolean isPublished;
 	int moderationMode;
 	String latLng;
@@ -40,15 +40,14 @@ public class ExperienceMetaDataModel extends SugarRecord {
 
 	}
 
-	@Override
-	public Long getId() {
+	public String getExperienceId() {
 		return mid;
 	}
 
-	public ExperienceMetaDataModel(int id, String name, String description, String createdDate, String lastPublishedDate, Long designerId, boolean isPublished,
+	public ExperienceMetaDataModel(String id, String name, String description, String createdDate, String lastPublishedDate, String designerId, boolean isPublished,
 								   int moderationMode, String latLng, String summary, String snapshotPath, String thumbnailPath, int size, String theme)
 	{
-		this.mid = Long.valueOf(id);
+		this.mid = id;
 		this.name = name;
 		this.description = description;
 		this.createdDate = createdDate;
@@ -64,6 +63,9 @@ public class ExperienceMetaDataModel extends SugarRecord {
 		this.theme = theme;
 	}
 
+	public void setExperienceId(String id){
+		mid = id;
+	}
 	public String getSummary() {
 		return summary;
 	}
@@ -151,14 +153,20 @@ public class ExperienceMetaDataModel extends SugarRecord {
 		return createdDate;
 	}
 
-	public Long getProAuthID() {
+	public String getProAuthID() {
 		return designerId;
 	}
 
 	public LatLng getLocation()
 	{
 		String[] location = latLng.split(" ");
-		return new LatLng(Double.parseDouble(location[0]), Double.parseDouble(location[1]));
+		try {
+			return new LatLng(Double.parseDouble(location[0]), Double.parseDouble(location[1]));
+		}
+		catch (Exception e){
+			e.printStackTrace();
+			return new LatLng(0,0);
+		}
 	}
 
 	public String getProPublicURL() {

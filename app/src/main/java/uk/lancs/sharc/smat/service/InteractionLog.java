@@ -29,6 +29,7 @@ import android.os.Build;
 import android.text.TextUtils;
 import android.view.View;
 
+import uk.lancs.sharc.smat.controller.MainActivity;
 import uk.lancs.sharc.smat.service.SharcLibrary;
 
 /**
@@ -71,7 +72,7 @@ public class InteractionLog {
 		this.mMap = mMap;
 	}
 	
-	public void addLog(LatLng location, DbxAccountManager userInfo, String actionID, String actionData)
+	public void addLog(String actionID, String actionData)
 	{
 		//Add a log line to the log file
 		//A log line format: DateAndTime,LatLng,DeviceID,UserID,ActionID,ActionName,ActionData
@@ -82,6 +83,8 @@ public class InteractionLog {
 		// - ActionData: depends on the ActionID		
 		//Example of a log line: Thu May 07 13:44:29 BST 2015,54.00594448 -2.78566378,0a282ca7,387643271,02,SELECT_YAH,SmallRed
 		try {
+			LatLng location = ((MainActivity)activity).getInitialLocation();
+			CloudManager cloudManager = ((MainActivity)activity).getCloudManager();
 			ArrayList<String> logData = new ArrayList<String>();
 			String timeStamp = (new Date()).toString();
 
@@ -94,10 +97,10 @@ public class InteractionLog {
 
 			logData.add(deviceID);
 
-			if (userInfo == null || !userInfo.hasLinkedAccount())
+			if (cloudManager == null)
 				logData.add("anonymous");
 			else
-				logData.add(userInfo.getLinkedAccount().getUserId());
+				logData.add(cloudManager.getCloudAccountId());
 
 
 			logData.add(actionID);

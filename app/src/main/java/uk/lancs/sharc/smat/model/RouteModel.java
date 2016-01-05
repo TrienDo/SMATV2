@@ -2,14 +2,12 @@ package uk.lancs.sharc.smat.model;
 
 import android.location.Location;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.orm.SugarRecord;
+import com.orm.dsl.Ignore;
 
 /**
  * <p>This class is a reduced model of the route entity</p>
@@ -21,9 +19,9 @@ import com.orm.SugarRecord;
 
 public class RouteModel extends SugarRecord {
 	//@Unique
-	private Long mid;
-	private Long designerId;
-	private Long experienceId;
+	private String mid;
+	private String designerId;
+	private String experienceId;
 	private String name;
 	private String description;
 	private boolean directed;
@@ -32,11 +30,13 @@ public class RouteModel extends SugarRecord {
 	private String poiList;
 	private String eoiList;
 
+	@Ignore
+	List<LatLng> latLngPath;
 	public RouteModel(){
-
+		latLngPath = new ArrayList<LatLng>();
 	}
 
-	public RouteModel(Long id, Long designerId, Long experienceId, String name, String description, boolean directed, String colour, String path, String poiList, String eoiList){
+	public RouteModel(String id, String designerId, String experienceId, String name, String description, boolean directed, String colour, String path, String poiList, String eoiList){
 		this.mid = id;
 		this.designerId = designerId;
 		this.experienceId = experienceId;
@@ -47,12 +47,11 @@ public class RouteModel extends SugarRecord {
 		this.path = path;
 		this.poiList = poiList;
 		this.eoiList = eoiList;
-	}
-
-	public List<LatLng> getPath() {
-		List<LatLng> latLngPath = new ArrayList<LatLng>();
+		latLngPath = new ArrayList<LatLng>();
+		if (path.equalsIgnoreCase(""))
+			return;
 		String[]latLngInfo = this.path.split(" ");
-		if(latLngInfo.length > 2)
+		if(latLngInfo.length >= 2)
 		{
 			int i = 0;
 			while (i < latLngInfo.length)
@@ -61,6 +60,9 @@ public class RouteModel extends SugarRecord {
 				i+=2;
 			}
 		}
+	}
+
+	public List<LatLng> getLatLngPath() {
 		return latLngPath;
 	}
 	public void setPath(String path) {
@@ -73,7 +75,7 @@ public class RouteModel extends SugarRecord {
 	public float getDistance() {
 		float distance = 0.0f;
 		float[] results = new float[1];
-		List<LatLng> routePath = this.getPath();
+		List<LatLng> routePath = this.getLatLngPath();
 		for (int i=1; i < routePath.size(); i++)
 		{
 			Location.distanceBetween(routePath.get(i - 1).latitude, routePath.get(i - 1).longitude, routePath.get(i).latitude, routePath.get(i).longitude, results);
@@ -92,7 +94,7 @@ public class RouteModel extends SugarRecord {
 		this.description = description;
 	}
 
-	public void setId(Long id) {
+	public void setRouteId(String id) {
 		this.mid = id;
 	}
 
@@ -120,24 +122,23 @@ public class RouteModel extends SugarRecord {
 		this.directed = directed;
 	}
 
-	@Override
-	public Long getId() {
+	public String getRouteId() {
 		return mid;
 	}
 
-	public Long getDesignerId() {
+	public String getDesignerId() {
 		return designerId;
 	}
 
-	public void setDesignerId(Long designerId) {
+	public void setDesignerId(String designerId) {
 		this.designerId = designerId;
 	}
 
-	public Long getExperienceId() {
+	public String getExperienceId() {
 		return experienceId;
 	}
 
-	public void setExperienceId(Long experienceId) {
+	public void setExperienceId(String experienceId) {
 		this.experienceId = experienceId;
 	}
 
@@ -160,4 +161,5 @@ public class RouteModel extends SugarRecord {
 	public void setEoiList(String eoiList) {
 		this.eoiList = eoiList;
 	}
+
 }

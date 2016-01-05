@@ -2,19 +2,25 @@ package uk.lancs.sharc.smat.service;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.location.Location;
 import android.os.AsyncTask;
-import android.util.Log;
+import android.os.StrictMode;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.model.LatLng;
 
+import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +28,6 @@ import uk.lancs.sharc.smat.controller.MainActivity;
 import uk.lancs.sharc.smat.model.ExperienceMetaDataModel;
 import uk.lancs.sharc.smat.model.JSONParser;
 import uk.lancs.sharc.smat.model.ResponseModel;
-import uk.lancs.sharc.smat.model.SMEPAppVariable;
 
 /**
  * Created by SHARC on 11/12/2015.
@@ -31,7 +36,8 @@ public class RestfulManager {
     //RESTful APIs
     public static final String api_path = "http://wraydisplay.lancs.ac.uk/SHARC20/api/v1/";
     //public static final String api_path = "http://148.88.227.222/SHARC20/api/v1/";
-    public static final String api_get_all_published_experiences = api_path + "experiences";
+    public static final String api_log_in =  api_path + "users";
+    public static final String api_get_online_experiences = api_path + "experiences/";
     public static final String api_get_experience_snapshot = api_path + "experienceSnapshot/";
     public static final String api_get_mock_location = api_path + "locations/";
     public static final String api_submit_response = api_path + "responses";
@@ -41,14 +47,14 @@ public class RestfulManager {
 
     private Activity activity;
     private CloudManager cloudManager;
-    private Long userId;
-    private String apiKey;
+    private String userId;
+    private String apiKey= "";
 
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
     public String getApiKey() {
@@ -75,11 +81,17 @@ public class RestfulManager {
         new GetAllOnlineExperiencesThread().execute();
     }
 
-    public void downloadExperience(Long exprienceId){
-        new ExperienceDetailsThread().execute(exprienceId.toString());
+    public void downloadExperience(String exprienceId){
+        new ExperienceDetailsThread().execute(exprienceId);
     }
 
+    public void createExperienceOnServer(){
+        new CreateExperienceOnServerThread().execute();
+    }
 
+    public void loginServer(){
+        new LoginServerThread().execute();
+    }
     public void submitResponse(ResponseModel res){
         new SubmitResponseThread(res).execute();
     }
@@ -96,6 +108,8 @@ public class RestfulManager {
     {
         //Before starting the background thread -> Show Progress Dialog
         private ProgressDialog pDialog;
+        boolean error = false;
+        HttpResponse res;
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -111,57 +125,12 @@ public class RestfulManager {
         {
             try
             {
-                // Building Parameters
-                JSONParser jParser = new JSONParser();
-                List<NameValuePair> params = new ArrayList<NameValuePair>();
-                // Getting result in form of a JSON string from a Web RESTful
-                JSONObject json = jParser.makeHttpRequest(RestfulManager.api_get_all_published_experiences, "GET", params);
-
-                String ret = json.getString("status");
-                if (ret.equalsIgnoreCase(RestfulManager.STATUS_SUCCESS))
-                {
-                    // Get Array of experiences
-                    JSONArray publishedExperiences = json.getJSONArray("data");
-
-                    // Loop through all experiences
-                    ExperienceMetaDataModel tmpExperience;
-                    String logData = "";
-                    for (int i = 0; i < publishedExperiences.length(); i++)
-                    {
-                        JSONObject objExperience = publishedExperiences.getJSONObject(i);
-                        // Storing each json item in variable
-                        int id = objExperience.getInt("id");
-                        String name = objExperience.getString("name");
-                        String description = objExperience.getString("description");
-                        if(description.length() > 0 && description.charAt(description.length()-1) != '.')
-                            description.concat(".");
-                        String createdDate = objExperience.getString("createdDate");
-                        String lastPublishedDate = objExperience.getString("lastPublishedDate");
-                        Long designerId = objExperience.getLong("designerId");
-                        boolean isPublished = true;
-                        int moderationMode = objExperience.getInt("moderationMode");
-                        String latLng = objExperience.getString("latLng");
-                        String summary = objExperience.getString("summary");
-                        String snapshotPath = objExperience.getString("snapshotPath");
-                        String thumbnailPath = objExperience.getString("thumbnailPath");
-                        int size = objExperience.getInt("size");
-                        String theme = objExperience.getString("theme");
-                        tmpExperience = new ExperienceMetaDataModel(id, name, description, createdDate, lastPublishedDate, designerId, isPublished,
-                                moderationMode, latLng, summary, snapshotPath, thumbnailPath, size, theme);
-
-                        logData += "#" + tmpExperience.getProName();
-                        ((MainActivity) activity).getAllExperienceMetaData().add(tmpExperience);
-                    }
-                    //smepInteractionLog.addLog(initialLocation, mDbxAcctMgr, InteractionLog.VIEW_ONLINE_EXPERIENCES, logData);
-                }
-                else
-                {
-                    Toast.makeText(activity, "No experiences found", Toast.LENGTH_LONG).show();
-                }
+                res = makeGetRequest(RestfulManager.api_get_online_experiences.concat(userId));
             }
             catch (Exception e)
             {
                 e.printStackTrace();
+                error = true;
             }
             return null;
         }
@@ -175,8 +144,58 @@ public class RestfulManager {
             activity.runOnUiThread(new Runnable() {
                 public void run() {
                     //Updating parsed JSON data into ListView
-                    ((MainActivity)activity).displayAllExperienceMetaData(true);
-                    ((MainActivity)activity).addOnlineExperienceMarkerListener();
+                    try
+                    {
+                        JSONObject json = getJsonFromHttpResponse(res);
+                        String ret = null;
+                        try {
+                            ret = json.getString("status");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        if (ret.equalsIgnoreCase(RestfulManager.STATUS_SUCCESS)) {
+                            // Getting result in form of a JSON string from a Web RESTful
+                            // Get Array of experiences
+                            JSONArray publishedExperiences = json.getJSONArray("data");
+
+                            // Loop through all experiences
+                            ExperienceMetaDataModel tmpExperience;
+                            String logData = "";
+                            for (int i = 0; i < publishedExperiences.length(); i++) {
+                                JSONObject objExperience = publishedExperiences.getJSONObject(i);
+                                // Storing each json item in variable
+                                String id = objExperience.getString("id");
+                                String name = objExperience.getString("name");
+                                String description = objExperience.getString("description");
+                                if (description.length() > 0 && description.charAt(description.length() - 1) != '.')
+                                    description.concat(".");
+                                String createdDate = objExperience.getString("createdDate");
+                                String lastPublishedDate = objExperience.getString("lastPublishedDate");
+                                String designerId = objExperience.getString("designerId");
+                                boolean isPublished = true;
+                                int moderationMode = objExperience.getInt("moderationMode");
+                                String latLng = objExperience.getString("latLng");
+                                String summary = objExperience.getString("summary");
+                                String snapshotPath = objExperience.getString("snapshotPath");
+                                String thumbnailPath = objExperience.getString("thumbnailPath");
+                                int size = objExperience.getInt("size");
+                                String theme = objExperience.getString("theme");
+                                tmpExperience = new ExperienceMetaDataModel(id, name, description, createdDate, lastPublishedDate, designerId, isPublished,
+                                        moderationMode, latLng, summary, snapshotPath, thumbnailPath, size, theme);
+
+                                logData += "#" + tmpExperience.getProName();
+                                ((MainActivity) activity).getAllExperienceMetaData().add(tmpExperience);
+                            }
+                            ((MainActivity) activity).displayAllExperienceMetaData(true);
+                            ((MainActivity) activity).addOnlineExperienceMarkerListener();
+                            //smepInteractionLog.addLog(initialLocation, mDbxAcctMgr, InteractionLog.VIEW_ONLINE_EXPERIENCES, logData);
+                        }
+                        else {
+                                Toast.makeText(activity, "No experiences found", Toast.LENGTH_LONG).show();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             });
         }
@@ -319,5 +338,165 @@ public class RestfulManager {
                 }
             });
         }
+    }
+
+    class LoginServerThread extends AsyncTask<String, String, String>
+    {
+        //Before starting the background thread -> Show Progress Dialog
+        boolean error = false;
+        HttpResponse res;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        //Update designer and experience info
+        protected String doInBackground(String... args)
+        {
+            try
+            {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("id", SharcLibrary.getIdString(cloudManager.getCloudAccountId()));
+                jsonObject.put("username", cloudManager.getUserName());
+                jsonObject.put("email", cloudManager.getUserEmail());
+                jsonObject.put("cloudType", cloudManager.getCloudType());
+                jsonObject.put("cloudAccountId", cloudManager.getCloudAccountId());
+                jsonObject.put("location", "");
+                res = makePostRequest(api_log_in, jsonObject);
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+                error = true;
+            }
+            return null;
+        }
+
+        //After completing background task ->Dismiss the progress dialog
+        protected void onPostExecute(String file_url)
+        {
+            // dismiss the dialog after getting all files
+            // updating UI from Background Thread
+            activity.runOnUiThread(new Runnable() {
+                public void run() {
+                    try {
+                        JSONObject json = getJsonFromHttpResponse(res);
+                        String ret = json.getString("status");
+                        if (ret.equalsIgnoreCase(RestfulManager.STATUS_SUCCESS)) {
+                            JSONObject data = json.getJSONObject("data");
+                            apiKey = data.getString("apiKey");
+                            userId = data.getString("id");
+                        }
+                        else
+                            error = true;
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    if(error)
+                        Toast.makeText(activity, "Error when loging in. Please try again", Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+    }
+
+    class CreateExperienceOnServerThread extends AsyncTask<String, String, String>
+    {
+        //Before starting the background thread -> Show Progress Dialog
+        private ProgressDialog pDialog;
+        private boolean isError = false;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pDialog = new ProgressDialog(activity);
+            pDialog.setMessage("Creating a new experience on server. Please wait...");
+            pDialog.setIndeterminate(false);
+            pDialog.setCancelable(false);
+            pDialog.show();
+        }
+
+        //Update designer and experience info
+        protected String doInBackground(String... args)
+        {
+            try
+            {
+                JSONObject params = new JSONObject();
+                params.put("username","Trien Van Do");
+                params.put("email","Doctor");
+                HttpResponse res = makePostRequest("http://192.168.0.4/BestBooks/api/v1/experiences", params);
+                JSONObject rs = getJsonFromHttpResponse(res);
+                String out = "Out";
+                //Can use Gson library later
+                //String designerEmail = args[0];
+                //Connect to datastore
+
+                //ExperienceMetaDataModel metaData = selectedExperienceDetail.getMetaData();
+
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+                isError = true;
+            }
+            return null;
+        }
+
+        //After completing background task ->Dismiss the progress dialog
+        protected void onPostExecute(String file_url)
+        {
+            // dismiss the dialog after getting all files
+            pDialog.dismiss();
+            // updating UI from Background Thread
+            activity.runOnUiThread(new Runnable() {
+                public void run() {
+                    if (isError) {
+                        //Toast.makeText(activity, getString(R.string.message_create_db_error), Toast.LENGTH_LONG).show();
+                        //processTab(0);
+                    }
+                }
+            });
+        }
+    }
+
+    public HttpResponse makePostRequest(String path, JSONObject params) throws Exception
+    {
+        HttpPost httPost = new HttpPost(path);
+        httPost.addHeader("apiKey", this.getApiKey());
+        StringEntity se = new StringEntity(params.toString());
+        httPost.setEntity(se);
+        httPost.setHeader("Accept", "application/json");
+        httPost.setHeader("Content-type", "application/json");
+        return new DefaultHttpClient().execute(httPost);
+    }
+
+    public HttpResponse makeGetRequest(String path) throws Exception
+    {
+        HttpGet httGet = new HttpGet(path);
+        httGet.addHeader("apiKey", this.getApiKey());
+        httGet.setHeader("Accept", "application/json");
+        return new DefaultHttpClient().execute(httGet);
+    }
+
+    public JSONObject getJsonFromHttpResponse(HttpResponse response){
+        JSONObject finalResult = null;//http://stackoverflow.com/questions/2845599/how-do-i-parse-json-from-a-java-httpresponse
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+            StringBuilder builder = new StringBuilder();
+            String line = null;
+            line = reader.readLine();
+            while (line != null){
+                builder.append(line);
+                line = reader.readLine();
+            }
+            //String json = reader.readLine();
+            //JSONTokener tokener = new JSONTokener(json);
+            JSONTokener tokener = new JSONTokener(builder.toString());
+            finalResult = new JSONObject(tokener);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return finalResult;
     }
 }

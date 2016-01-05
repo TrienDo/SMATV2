@@ -169,7 +169,7 @@ public class DropboxCloud extends CloudManager{
             String fileSize = "0";
             if(mediaType.equalsIgnoreCase(MediaModel.TYPE_IMAGE))
             {
-                //Bitmap bmp = BitmapFactory.decodeFile(fileUri.getPath());
+                //Bitmap bmp = BitmapFactory.decodeFile(fileUri.getLatLngPath());
                 Bitmap bmp = MediaStore.Images.Media.getBitmap(activity.getContentResolver(), fileUri);
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 bmp.compress(Bitmap.CompressFormat.JPEG, 70, bos);

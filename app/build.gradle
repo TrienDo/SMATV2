@@ -7,6 +7,7 @@ android {
         applicationId 'uk.lancs.sharc.smat'
         minSdkVersion 16
         targetSdkVersion 22
+        multiDexEnabled true
     }
     buildTypes {
         release {

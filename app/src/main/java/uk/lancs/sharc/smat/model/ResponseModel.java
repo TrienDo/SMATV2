@@ -20,7 +20,7 @@ import com.orm.dsl.Ignore;
 
 public class ResponseModel extends SugarRecord {
 	private String mid;
-	private Long experienceId;
+	private String experienceId;
 	private String userId;
 	private String contentType;
 	private String content;
@@ -30,6 +30,7 @@ public class ResponseModel extends SugarRecord {
 	private String status;
 	private int size;
 	private String submittedDate;
+	private String fileId;
 
 	@Ignore
 	private Uri fileUri;
@@ -48,7 +49,7 @@ public class ResponseModel extends SugarRecord {
 
 	}
 
-	public ResponseModel(String mid, Long experienceId, String userId, String contentType, String content, String description,
+	public ResponseModel(String mid, String experienceId, String userId, String contentType, String content, String description,
 						 String entityType, String entityId, String status, int size, String submittedDate)
 	{
 		this.mid = mid;
@@ -170,16 +171,24 @@ public class ResponseModel extends SugarRecord {
 		this.mid = mid;
 	}
 
-	public Long getExperienceId() {
+	public String getExperienceId() {
 		return experienceId;
 	}
 
-	public void setExperienceId(Long experienceId) {
+	public void setExperienceId(String experienceId) {
 		this.experienceId = experienceId;
 	}
 
 	public void setSubmittedDate(String submittedDate) {
 		this.submittedDate = submittedDate;
+	}
+
+	public String getFileId() {
+		return fileId;
+	}
+
+	public void setFileId(String fileId) {
+		this.fileId = fileId;
 	}
 
 	public String getHTMLCodeForResponse(boolean isLocal)//Two types of responses: local added by the current user, online submitted by other users

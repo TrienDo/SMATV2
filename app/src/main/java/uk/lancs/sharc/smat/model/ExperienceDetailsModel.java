@@ -153,14 +153,17 @@ public class ExperienceDetailsModel {
 		metaData.setEoiCount(allEOIs.size());
 		for (int i = 0; i < allEOIs.size(); i++)
 		{
-			List<MediaModel> mediaList = experienceDatabaseManager.getMediaForEntity(allEOIs.get(i).getId(), "EOI");
+			List<MediaModel> mediaList = experienceDatabaseManager.getMediaForEntity(allEOIs.get(i).getEoiId(), "EOI");
 			String content = allEOIs.get(i).getHTMLPresentation(mediaList);
 			allEOIs.get(i).setMediaHTMLCode(content);
 		}
 	}
 
-	public void renderAllRoutes(GoogleMap mMap)
+	//Return the index of the route which has not been saved (e.g., app crashes)
+	//Else - 1 if all routes have been saved
+	public int renderAllRoutes(GoogleMap mMap)
 	{
+		int inSaveRouteIndex = -1;
 		allRoutes = experienceDatabaseManager.getAllRoutes();
 		metaData.setRouteCount(allRoutes.size());
 		String routeInfo = "";
@@ -171,27 +174,34 @@ public class ExperienceDetailsModel {
 					.width(5)
 					.color(SharcLibrary.hex2rgb(allRoutes.get(i).getColour()))
 					.visible(true)
-			)).setPoints(allRoutes.get(i).getPath());
+			)).setPoints(allRoutes.get(i).getLatLngPath());
 			if(allRoutes.get(i).getDirected())
 			{
 				startRoute = mMap.addMarker(new MarkerOptions()
 								.anchor(0.5f, 1.0f)
 								.title("START")
-								.position(allRoutes.get(i).getPath().get(0))
+								.position(allRoutes.get(i).getLatLngPath().get(0))
 								.icon(BitmapDescriptorFactory.fromResource(R.raw.start))
 								.visible(true)
 				);
-				endRoute = mMap.addMarker(new MarkerOptions()
-								.title("END")
-								.anchor(0.5f, 0.0f)
-								.position(allRoutes.get(i).getPath().get(allRoutes.get(i).getPath().size()-1))
-								.icon(BitmapDescriptorFactory.fromResource(R.raw.end))
-								.visible(true)
-				);
+				if(allRoutes.get(i).getDescription().equalsIgnoreCase("This route is being recorded"))
+				{
+					inSaveRouteIndex = i;
+				}
+				else {
+					endRoute = mMap.addMarker(new MarkerOptions()
+									.title("END")
+									.anchor(0.5f, 0.0f)
+									.position(allRoutes.get(i).getLatLngPath().get(allRoutes.get(i).getLatLngPath().size() - 1))
+									.icon(BitmapDescriptorFactory.fromResource(R.raw.end))
+									.visible(true)
+					);
+				}
 			}
 			//metaData.setDifficultLevel(tmpRoute.getDescription());
 		}
 		metaData.setRouteInfo(routeInfo);
+		return inSaveRouteIndex;
 	}
     
     public LatLngBounds getGeographicalBoundary()//Get boundary of an experience to move and zoom to suitable location on maps
@@ -207,7 +217,7 @@ public class ExperienceDetailsModel {
     	//All routes
     	for(int k = 0; k < allRoutes.size(); k++)
     	{
-    		List<LatLng> path = allRoutes.get(k).getPath();
+    		List<LatLng> path = allRoutes.get(k).getLatLngPath();
     		for (i = 0; i < path.size(); i++)
         		boundsBuilder.include(path.get(i));
     		if(i>0)
@@ -257,11 +267,11 @@ public class ExperienceDetailsModel {
 		return mediaList;
 	}
 
-	public String[] getHTMLCodeForEOI(Long id)
+	public String[] getHTMLCodeForEOI(String id)
 	{
 		for(int i = 0; i < allEOIs.size(); i++)
 		{
-			if(allEOIs.get(i).getId() == id)
+			if(allEOIs.get(i).getEoiId().equalsIgnoreCase(id))
 			{
 				return new String[]{allEOIs.get(i).getName(), allEOIs.get(i).getMediaHTMLCode()};
 			}
@@ -408,7 +418,7 @@ public class ExperienceDetailsModel {
 
 		if(responseForType.equalsIgnoreCase(ResponseModel.FOR_POI))
 		{
-			String enName = getPOINameFromID(Long.valueOf(res.getEntityId()));
+			String enName = getPOINameFromID(res.getEntityId());
 			if(enName!=null) {
 				if(responseType.equalsIgnoreCase("text"))
 					return ("Added a new " + responseType + " for POI " + enName + " (" + SharcLibrary.getStringSize(myResponses.get(i).getContent()) + "KB)");
@@ -420,7 +430,7 @@ public class ExperienceDetailsModel {
 		}
 		else if(responseForType.equalsIgnoreCase(ResponseModel.FOR_EOI))
 		{
-			String enName = getEOINameFromID(Long.valueOf(res.getEntityId()));
+			String enName = getEOINameFromID(res.getEntityId());
 			if(enName!=null)
 				return ("Response for EOI named " + enName);
 			else
@@ -499,21 +509,21 @@ public class ExperienceDetailsModel {
 		return myResponses.get(index).getHTMLCodeForResponse(true);
 	}
 
-	public String getPOINameFromID(Long id)
+	public String getPOINameFromID(String id)
 	{
 		for (int i = 0; i < allPOIs.size(); i++)
 		{
-			if(allPOIs.get(i).getId() == id)
+			if(allPOIs.get(i).getPoiId().equalsIgnoreCase(id))
 				return allPOIs.get(i).getName();
 		}
 		return null;
 	}
 
-	public String getEOINameFromID(Long id)
+	public String getEOINameFromID(String id)
 	{
 		for (int i = 0; i < allEOIs.size(); i++)
 		{
-			if(allEOIs.get(i).getId() == id)
+			if(allEOIs.get(i).getEoiId().equalsIgnoreCase(id))
 				return allEOIs.get(i).getName();
 		}
 		return null;
@@ -526,10 +536,10 @@ public class ExperienceDetailsModel {
 	}
 
 	//Return index of the new POI
-	public int addNewPOI(Long id, String name, String description, String coordinate, String triggerZone, String typeList, GoogleMap mMap, SMEPAppVariable mySMEPAppVariable)
+	public int addNewPOI(String id, String name, String description, String coordinate, String triggerZone, String typeList, GoogleMap mMap, SMEPAppVariable mySMEPAppVariable)
 	{
 		//add to internal memory
-		POIModel tmpPOI = new POIModel(id, name, description, coordinate, triggerZone, metaData.getProAuthID(), metaData.getId(), typeList, "", "", "", 0, 0);
+		POIModel tmpPOI = new POIModel(id, name, description, coordinate, triggerZone, metaData.getProAuthID(), metaData.getExperienceId(), typeList, "", "", "", 0, 0);
 		renderPOIandTriggerZone(mMap, tmpPOI, String.valueOf(allPOIs.size()));//ID of marker -> when marker is tapped -> show Media of POI with that id
 		allPOIs.add(tmpPOI);
 		metaData.setPoiCount(allPOIs.size());
@@ -539,7 +549,7 @@ public class ExperienceDetailsModel {
 		return allPOIs.size()-1;
 	}
 
-	public void addNewRoute(RouteModel inRoute)
+	public Long addNewRoute(RouteModel inRoute)
 	{
 		//add to internal memory
 		allRoutes.add(inRoute);
@@ -547,6 +557,7 @@ public class ExperienceDetailsModel {
 		metaData.setRouteLength(metaData.getRouteLength() + inRoute.getDistance() / 1000);
 		metaData.setDifficultLevel(inRoute.getDescription());
 		experienceDatabaseManager.saveRoute(inRoute);
+		return inRoute.getId();
 	}
 
 	public void updateRoute(RouteModel inRoute)
@@ -569,7 +580,7 @@ public class ExperienceDetailsModel {
 		metaData.setRouteCount(allRoutes.size());
 		metaData.setRouteLength(metaData.getRouteLength() - inRoute.getDistance() / 1000);
 		metaData.setDifficultLevel("");
-		experienceDatabaseManager.deleteRoute(inRoute.getId());
+		experienceDatabaseManager.deleteRoute(inRoute.getRouteId());
 	}
 
 	public void addNewMediaItem(ResponseModel response)
@@ -582,31 +593,31 @@ public class ExperienceDetailsModel {
 		experienceDatabaseManager.updateMediaURL(mediaId, mediaURL);
 	}
 
-	public POIModel getPOIFromID(Long id)
+	public POIModel getPOIFromID(String id)
 	{
 		for (int i = 0; i < allPOIs.size(); i++)
 		{
-			if(allPOIs.get(i).getId() == id)
+			if(allPOIs.get(i).getPoiId().equalsIgnoreCase(id))
 				return allPOIs.get(i);
 		}
 		return null;
 	}
 
-	public int getPoiIndexFromID(Long id)
+	public int getPoiIndexFromID(String id)
 	{
 		for (int i = 0; i < allPOIs.size(); i++)
 		{
-			if(allPOIs.get(i).getId() == id)
+			if(allPOIs.get(i).getPoiId().equalsIgnoreCase(id))
 				return i;
 		}
 		return -1;
 	}
 
-	public RouteModel getRouteFromID(Long id)
+	public RouteModel getRouteFromID(String id)
 	{
 		for (int i = 0; i < allRoutes.size(); i++)
 		{
-			if(allRoutes.get(i).getId() == id)
+			if(allRoutes.get(i).getRouteId().equalsIgnoreCase(id))
 				return allRoutes.get(i);
 		}
 		return null;
