@@ -289,12 +289,12 @@ public class ExperienceDetailsModel {
 	{
 		//Get icon for marker to present the POI
 		Marker tmpMarker = allPoiMarkers.get(markerIndex);
-		String firstImage = curPOI.getThumbnailPath();//Can be local or download
-		if(firstImage.contains("http"))//downloaded
-		{
-			firstImage = firstImage.substring(firstImage.lastIndexOf("/"),firstImage.lastIndexOf("."));
-			firstImage = SharcLibrary.SHARC_MEDIA_FOLDER + "/" + firstImage + ".jpg";
-		}
+		String firstImage = curPOI.getThumbnailPath();//Only used when adding a new photo media item
+		//if(firstImage.contains("http"))//downloaded
+		//{
+		//	firstImage = firstImage.substring(firstImage.lastIndexOf("/"),firstImage.lastIndexOf("."));
+		//	firstImage = SharcLibrary.SHARC_MEDIA_FOLDER + "/" + firstImage + ".jpg";
+		//}
 		if(firstImage.equalsIgnoreCase(""))
 			tmpMarker.setIcon(BitmapDescriptorFactory.fromResource(R.raw.poi));
 		else
@@ -413,44 +413,28 @@ public class ExperienceDetailsModel {
 	public String getMyResponseName(int i)
 	{
 		ResponseModel res = myResponses.get(i);
-		String responseForType = res.getEntityType().toUpperCase();
-		String responseType = res.getContentType().toUpperCase();
+		String entityType = res.getEntityType().toUpperCase();
+		String mediaType = res.getContentType().toUpperCase();
 
-		if(responseForType.equalsIgnoreCase(ResponseModel.FOR_POI))
+		if(entityType.equalsIgnoreCase(ResponseModel.FOR_POI))
 		{
 			String enName = getPOINameFromID(res.getEntityId());
 			if(enName!=null) {
-				if(responseType.equalsIgnoreCase("text"))
-					return ("Added a new " + responseType + " for POI " + enName + " (" + SharcLibrary.getStringSize(myResponses.get(i).getContent()) + "KB)");
-				else if(responseType.equalsIgnoreCase("image"))
-					return ("Added a new " + responseType + " for POI " + enName + " (" + SharcLibrary.getFilesize(myResponses.get(i).getContent(),true) + "MB)");
+				if(mediaType.equalsIgnoreCase("text"))
+					return ("Added a new " + mediaType + " for POI " + enName + " (" + SharcLibrary.getStringSize(myResponses.get(i).getContent()) + "KB)");
+				else if(mediaType.equalsIgnoreCase("image"))
+					return ("Added a new " + mediaType + " for POI " + enName + " (" + SharcLibrary.getFilesize(myResponses.get(i).getContent(),true) + "MB)");
 				else
-					return ("Added a new " + responseType + " for POI " + enName + " (" + SharcLibrary.getFilesize(myResponses.get(i).getContent(),false) + "MB)");
+					return ("Added a new " + mediaType + " for POI " + enName + " (" + SharcLibrary.getFilesize(myResponses.get(i).getContent(),false) + "MB)");
 			}
 		}
-		else if(responseForType.equalsIgnoreCase(ResponseModel.FOR_EOI))
-		{
-			String enName = getEOINameFromID(res.getEntityId());
-			if(enName!=null)
-				return ("Response for EOI named " + enName);
-			else
-				return ("Response for all EOIs");
-		}
-		else if(responseForType.equalsIgnoreCase(ResponseModel.FOR_ROUTE))
+		else if(entityType.equalsIgnoreCase(ResponseModel.FOR_ROUTE))
 		{
 			return ("Created a new route named " + myResponses.get(i).getContent());
 		}
-		else if(responseForType.equalsIgnoreCase(ResponseModel.FOR_NEW_POI))
+		else if(entityType.equalsIgnoreCase(ResponseModel.FOR_NEW_POI))
 		{
 			return ("Created a new POI named " + myResponses.get(i).getContent());
-		}
-		else if(responseForType.equalsIgnoreCase(ResponseModel.FOR_MEDIA))
-		{
-			return ("Comment on a media item");
-		}
-		else if(responseForType.equalsIgnoreCase(ResponseModel.FOR_RESPONSE))
-		{
-			return ("Comment on a response");
 		}
 		return "";
 	}
@@ -478,6 +462,9 @@ public class ExperienceDetailsModel {
 		this.metaData = metaData;
 	}
 
+	public void updateMetaData(){
+		experienceDatabaseManager.updateExperienceOnceUploadedToServer(metaData);
+	}
 	public List<ResponseModel> getMyResponses() {
 		return myResponses;
 	}
@@ -491,12 +478,12 @@ public class ExperienceDetailsModel {
 		return allPOIs.get(index).getName();
 	}
 
-	public Long getPOIID(int index)
+	public String getPOIID(int index)
 	{
 		if(index >=0 && index < allPOIs.size())
-			return allPOIs.get(index).getId();
+			return allPOIs.get(index).getPoiId();
 		else
-			return Long.valueOf(-1);
+			return "-1";
 	}
 
 	public ResponseModel getMyResponseAt(int index)
@@ -539,7 +526,7 @@ public class ExperienceDetailsModel {
 	public int addNewPOI(String id, String name, String description, String coordinate, String triggerZone, String typeList, GoogleMap mMap, SMEPAppVariable mySMEPAppVariable)
 	{
 		//add to internal memory
-		POIModel tmpPOI = new POIModel(id, name, description, coordinate, triggerZone, metaData.getProAuthID(), metaData.getExperienceId(), typeList, "", "", "", 0, 0);
+		POIModel tmpPOI = new POIModel(id, name, description, coordinate, triggerZone, metaData.getDesignerId(), metaData.getExperienceId(), typeList, "", "", "", 0, 0);
 		renderPOIandTriggerZone(mMap, tmpPOI, String.valueOf(allPOIs.size()));//ID of marker -> when marker is tapped -> show Media of POI with that id
 		allPOIs.add(tmpPOI);
 		metaData.setPoiCount(allPOIs.size());
@@ -549,7 +536,7 @@ public class ExperienceDetailsModel {
 		return allPOIs.size()-1;
 	}
 
-	public Long addNewRoute(RouteModel inRoute)
+	public void addNewRoute(RouteModel inRoute)
 	{
 		//add to internal memory
 		allRoutes.add(inRoute);
@@ -557,7 +544,6 @@ public class ExperienceDetailsModel {
 		metaData.setRouteLength(metaData.getRouteLength() + inRoute.getDistance() / 1000);
 		metaData.setDifficultLevel(inRoute.getDescription());
 		experienceDatabaseManager.saveRoute(inRoute);
-		return inRoute.getId();
 	}
 
 	public void updateRoute(RouteModel inRoute)
@@ -580,12 +566,29 @@ public class ExperienceDetailsModel {
 		metaData.setRouteCount(allRoutes.size());
 		metaData.setRouteLength(metaData.getRouteLength() - inRoute.getDistance() / 1000);
 		metaData.setDifficultLevel("");
-		experienceDatabaseManager.deleteRoute(inRoute.getRouteId());
+		experienceDatabaseManager.deleteRoute(inRoute.getId());
 	}
 
 	public void addNewMediaItem(ResponseModel response)
 	{
-		experienceDatabaseManager.saveMediaFromResponse(response);
+		boolean isMainMedia = experienceDatabaseManager.saveMediaFromResponse(response);
+			//update media order for POI
+		POIModel poi = this.getPOIFromID(response.getEntityId());
+		if (poi != null) {
+			if (response.getContentType().equalsIgnoreCase(MediaModel.TYPE_IMAGE)) {
+				if(isMainMedia && !poi.getType().equalsIgnoreCase(SharcLibrary.SHARC_POI_ACCESSIBILITY)) {
+					poi.setThumbnailPath(response.getContent());
+					this.updatePOIThumbnail(poi, this.getPoiIndexFromID(response.getEntityId()));
+				}
+				this.metaData.setImageCount(this.metaData.getImageCount() + 1);
+			} else if (response.getContentType().equalsIgnoreCase(MediaModel.TYPE_TEXT)) {
+				this.metaData.setTextCount(this.metaData.getTextCount() + 1);
+			} else if (response.getContentType().equalsIgnoreCase(MediaModel.TYPE_AUDIO)) {
+				this.metaData.setAudioCount(this.metaData.getAudioCount() + 1);
+			} else if (response.getContentType().equalsIgnoreCase(MediaModel.TYPE_VIDEO)) {
+				this.metaData.setVideoCount(this.metaData.getVideoCount() + 1);
+			}
+		}
 	}
 
 	public void updatePublicURLForMedia(Long mediaId, String mediaURL)
@@ -621,6 +624,11 @@ public class ExperienceDetailsModel {
 				return allRoutes.get(i);
 		}
 		return null;
+	}
+
+	public MediaModel getMediaFromId(String id)
+	{
+		return experienceDatabaseManager.getMediaFromId(id);
 	}
 
 	public RouteModel getRouteAt(int index)

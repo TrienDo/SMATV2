@@ -27,6 +27,7 @@ import java.util.List;
 import uk.lancs.sharc.smat.controller.MainActivity;
 import uk.lancs.sharc.smat.model.ExperienceMetaDataModel;
 import uk.lancs.sharc.smat.model.JSONParser;
+import uk.lancs.sharc.smat.model.POIModel;
 import uk.lancs.sharc.smat.model.ResponseModel;
 
 /**
@@ -34,14 +35,12 @@ import uk.lancs.sharc.smat.model.ResponseModel;
  */
 public class RestfulManager {
     //RESTful APIs
-    public static final String api_path = "http://wraydisplay.lancs.ac.uk/SHARC20/api/v1/";
-    //public static final String api_path = "http://148.88.227.222/SHARC20/api/v1/";
+    //public static final String api_path = "http://wraydisplay.lancs.ac.uk/SHARC20/api/v1/";
+    public static final String api_path = "http://148.88.227.222/SHARC20/api/v1/";
     public static final String api_log_in =  api_path + "users";
-    public static final String api_get_online_experiences = api_path + "experiences/";
+    public static final String api_experiences = api_path + "experiences";
     public static final String api_get_experience_snapshot = api_path + "experienceSnapshot/";
-    public static final String api_get_mock_location = api_path + "locations/";
     public static final String api_submit_response = api_path + "responses";
-    public static final String api_update_consumer_experience = api_path + "consumerExperience";
 
     public static final String STATUS_SUCCESS = "success";
 
@@ -92,7 +91,15 @@ public class RestfulManager {
     public void loginServer(){
         new LoginServerThread().execute();
     }
-    public void submitResponse(ResponseModel res){
+
+    public void uploadPoi(POIModel poi){
+
+    }
+
+    public void uploadRoute(POIModel poi){
+
+    }
+    public void uploadMedia(ResponseModel res){
         new SubmitResponseThread(res).execute();
     }
 
@@ -125,7 +132,7 @@ public class RestfulManager {
         {
             try
             {
-                res = makeGetRequest(RestfulManager.api_get_online_experiences.concat(userId));
+                res = makeGetRequest(RestfulManager.api_experiences.concat("/" + userId));
             }
             catch (Exception e)
             {
@@ -164,26 +171,8 @@ public class RestfulManager {
                             for (int i = 0; i < publishedExperiences.length(); i++) {
                                 JSONObject objExperience = publishedExperiences.getJSONObject(i);
                                 // Storing each json item in variable
-                                String id = objExperience.getString("id");
-                                String name = objExperience.getString("name");
-                                String description = objExperience.getString("description");
-                                if (description.length() > 0 && description.charAt(description.length() - 1) != '.')
-                                    description.concat(".");
-                                String createdDate = objExperience.getString("createdDate");
-                                String lastPublishedDate = objExperience.getString("lastPublishedDate");
-                                String designerId = objExperience.getString("designerId");
-                                boolean isPublished = true;
-                                int moderationMode = objExperience.getInt("moderationMode");
-                                String latLng = objExperience.getString("latLng");
-                                String summary = objExperience.getString("summary");
-                                String snapshotPath = objExperience.getString("snapshotPath");
-                                String thumbnailPath = objExperience.getString("thumbnailPath");
-                                int size = objExperience.getInt("size");
-                                String theme = objExperience.getString("theme");
-                                tmpExperience = new ExperienceMetaDataModel(id, name, description, createdDate, lastPublishedDate, designerId, isPublished,
-                                        moderationMode, latLng, summary, snapshotPath, thumbnailPath, size, theme);
-
-                                logData += "#" + tmpExperience.getProName();
+                                tmpExperience = new ExperienceMetaDataModel(objExperience);
+                                logData += "#" + tmpExperience.getName();
                                 ((MainActivity) activity).getAllExperienceMetaData().add(tmpExperience);
                             }
                             ((MainActivity) activity).displayAllExperienceMetaData(true);
@@ -297,7 +286,7 @@ public class RestfulManager {
                 params.add(new BasicNameValuePair("apiKey", getApiKey()));
                 params.add(new BasicNameValuePair("userId", getUserId().toString()));
 
-                params.add(new BasicNameValuePair("id", response.getMid()));
+                params.add(new BasicNameValuePair("id", response.getResponseId()));
                 params.add(new BasicNameValuePair("experienceId", response.getExperienceId().toString()));
 
                 params.add(new BasicNameValuePair("contentType", response.getContentType()));
@@ -405,9 +394,12 @@ public class RestfulManager {
         //Before starting the background thread -> Show Progress Dialog
         private ProgressDialog pDialog;
         private boolean isError = false;
+        ExperienceMetaDataModel experienceMetaDataModel;
+        HttpResponse res;
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            experienceMetaDataModel = ((MainActivity) activity).getSelectedExperienceDetail().getMetaData();
             pDialog = new ProgressDialog(activity);
             pDialog.setMessage("Creating a new experience on server. Please wait...");
             pDialog.setIndeterminate(false);
@@ -420,18 +412,10 @@ public class RestfulManager {
         {
             try
             {
-                JSONObject params = new JSONObject();
-                params.put("username","Trien Van Do");
-                params.put("email","Doctor");
-                HttpResponse res = makePostRequest("http://192.168.0.4/BestBooks/api/v1/experiences", params);
-                JSONObject rs = getJsonFromHttpResponse(res);
-                String out = "Out";
-                //Can use Gson library later
-                //String designerEmail = args[0];
-                //Connect to datastore
+                experienceMetaDataModel.setDesignerId(getUserId());
+                JSONObject jsonObject = experienceMetaDataModel.toJSON();
 
-                //ExperienceMetaDataModel metaData = selectedExperienceDetail.getMetaData();
-
+                res = makePostRequest(api_experiences, jsonObject);
             }
             catch (Exception e)
             {
@@ -449,10 +433,25 @@ public class RestfulManager {
             // updating UI from Background Thread
             activity.runOnUiThread(new Runnable() {
                 public void run() {
-                    if (isError) {
-                        //Toast.makeText(activity, getString(R.string.message_create_db_error), Toast.LENGTH_LONG).show();
-                        //processTab(0);
+                    try {
+                        JSONObject json = getJsonFromHttpResponse(res);
+                        if(json == null)
+                            isError = true;
+                        else{
+                            String ret = json.getString("status");
+                            if (ret.equalsIgnoreCase(RestfulManager.STATUS_SUCCESS)) {
+                                ((MainActivity) activity).getSelectedExperienceDetail().getMetaData().setPublicURL("");//Mark that creating OK
+                                ((MainActivity) activity).getSelectedExperienceDetail().updateMetaData();
+                            }
+                            else
+                                isError = true;
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
+
+                    if(isError)
+                        Toast.makeText(activity, "Error when creating the experience on server. Please try again", Toast.LENGTH_LONG).show();
                 }
             });
         }
@@ -499,4 +498,6 @@ public class RestfulManager {
         }
         return finalResult;
     }
+
+
 }

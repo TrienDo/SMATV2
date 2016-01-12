@@ -24,7 +24,7 @@ android {
                     newName = newName.replace("app-", "$rootProject.ext.appName-") //"MyAppName" -> I set my app variables in the root project
                     newName = newName.replace("-release", "-release" + formattedDate)
                     output.outputFile = new File(output.outputFile.parent, newName)*/
-                    output.outputFile = new File(output.outputFile.parent, "SMAT_V1.22.apk")
+                    output.outputFile = new File(output.outputFile.parent, "SMAT_V2.00.apk")
                 }
             }
         }

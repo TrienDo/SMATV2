@@ -1,6 +1,10 @@
 package uk.lancs.sharc.smat.model;
 import com.google.android.gms.maps.model.LatLng;
 import com.orm.SugarRecord;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * <p>This class stores meta data about an experience</p>
  * <p>It is mainly used to show available online/cached
@@ -63,6 +67,38 @@ public class ExperienceMetaDataModel extends SugarRecord {
 		this.theme = theme;
 	}
 
+	public void setDesignerId(String designerId) {
+		this.designerId = designerId;
+	}
+
+	public String getLastPublishedDate() {
+		return lastPublishedDate;
+	}
+
+	public String getLatLng() {
+		return latLng;
+	}
+
+	public boolean isPublished() {
+		return isPublished;
+	}
+
+	public int getModerationMode() {
+		return moderationMode;
+	}
+
+	public String getThumbnailPath() {
+		return thumbnailPath;
+	}
+
+	public String getTheme() {
+		return theme;
+	}
+
+	public String getSnapshotPath() {
+		return snapshotPath;
+	}
+
 	public void setExperienceId(String id){
 		mid = id;
 	}
@@ -74,7 +110,7 @@ public class ExperienceMetaDataModel extends SugarRecord {
 		this.summary = summary;
 	}
 
-	public int getProSize() {
+	public int getSize() {
 		return size;
 	}
 
@@ -118,9 +154,6 @@ public class ExperienceMetaDataModel extends SugarRecord {
 		this.poiCount = poiCount;
 	}
 
-	public String getProAuthName(){ return "Designer " + this.designerId;}
-
-	public String getProDate(){ return this.createdDate;}
 	public int getEoiCount() {
 		return eoiCount;
 	}
@@ -137,15 +170,11 @@ public class ExperienceMetaDataModel extends SugarRecord {
 		this.routeCount = routeCount;
 	}
 
-	public String getProName() {
+	public String getName() {
 		return name;
 	}
 
-	public String getProLocation() {
-		return latLng;
-	}
-
-	public String getProDesc() {
+	public String getDescription() {
 		return  description;
 	}
 
@@ -153,7 +182,8 @@ public class ExperienceMetaDataModel extends SugarRecord {
 		return createdDate;
 	}
 
-	public String getProAuthID() {
+
+	public String getDesignerId() {
 		return designerId;
 	}
 
@@ -169,8 +199,12 @@ public class ExperienceMetaDataModel extends SugarRecord {
 		}
 	}
 
-	public String getProPublicURL() {
+	public String getPublicURL() {
 		return snapshotPath;
+	}
+
+	public void setPublicURL(String publicURL) {
+		snapshotPath = publicURL;
 	}
 
 	public int getMediaCount() {
@@ -192,9 +226,10 @@ public class ExperienceMetaDataModel extends SugarRecord {
 	public void setDifficultLevel(String difficultLevel) {
 		this.difficultLevel = difficultLevel;
 	}
+
 	public String getExperienceStats()
 	{
-		String htmlCode = "<div><b>The current experience is '" + this.getProName()+ "'. It comprises: </b></div>";
+		String htmlCode = "<div><b>The current experience is '" + this.getName()+ "'. It comprises: </b></div>";
 		htmlCode += "<div>" + this.getRouteCount() + (this.getRouteCount()  > 1 ? " routes </div>" : " route </div>") + this.getRouteInfo();
 		htmlCode += "<div>" + this.getEoiCount() + (this.getEoiCount() > 1 ? " Events of Interest (EOIs). </div>" : " Event of Interest (EOIs). </div>");
 		htmlCode += "<div>" + this.getPoiCount() + (this.getPoiCount() > 1 ? " Points of Interest (POIs). </div>" : " Point of Interest (POIs). </div>");
@@ -212,5 +247,56 @@ public class ExperienceMetaDataModel extends SugarRecord {
 
 	public void setRouteInfo(String routeInfo) {
 		this.routeInfo = routeInfo;
+	}
+
+	public JSONObject toJSON(){
+		JSONObject jsonObject = new JSONObject();
+		try {
+			jsonObject.put("id", getExperienceId());
+			jsonObject.put("name", getName());
+			jsonObject.put("description", getDescription());
+			jsonObject.put("createdDate", getCreatedDate());
+			jsonObject.put("lastPublishedDate", getLastPublishedDate());
+			jsonObject.put("designerId", getDesignerId());
+			jsonObject.put("isPublished", isPublished());
+			jsonObject.put("moderationMode", getModerationMode());
+			jsonObject.put("latLng", getLatLng());
+			jsonObject.put("summary", getSummary());
+			jsonObject.put("snapshotPath", "");
+			jsonObject.put("thumbnailPath", getThumbnailPath());
+			jsonObject.put("size", getSize());
+			jsonObject.put("theme", getTheme());
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return jsonObject;
+	}
+
+	public ExperienceMetaDataModel(JSONObject objExperience)
+	{
+		try {
+			this.mid = objExperience.getString("id");
+			this.name = objExperience.getString("name");
+			this.description = objExperience.getString("description");
+			if (description.length() > 0 && description.charAt(description.length() - 1) != '.')
+				description.concat(".");
+			this.createdDate = objExperience.getString("createdDate");
+			this.lastPublishedDate = objExperience.getString("lastPublishedDate");
+			this.designerId = objExperience.getString("designerId");
+			String pl = objExperience.getString("isPublished");
+			if(pl.equalsIgnoreCase("1"))
+				this.isPublished = true;
+			else
+				this.isPublished = false;
+			this.moderationMode = objExperience.getInt("moderationMode");
+			this.latLng = objExperience.getString("latLng");
+			this.summary = objExperience.getString("summary");
+			this.snapshotPath = objExperience.getString("snapshotPath");
+			this.thumbnailPath = objExperience.getString("thumbnailPath");
+			this.size = objExperience.getInt("size");
+			this.theme = objExperience.getString("theme");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 	}
 }

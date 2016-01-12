@@ -1,7 +1,5 @@
 package uk.lancs.sharc.smat.service;
 
-import android.database.Cursor;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -38,35 +36,6 @@ public class ExperienceDatabaseManager
     public List<ExperienceMetaDataModel> getExperiences()
     {
         return ExperienceMetaDataModel.listAll(ExperienceMetaDataModel.class);
-    }
-
-    public void savePoi(POIModel poiModel){
-        poiModel.save();
-    }
-
-    public void saveRoute(RouteModel routeModel){
-        routeModel.save();
-    }
-
-    public void updateRoute(RouteModel routeModel){
-        RouteModel tmpRoute = RouteModel.findById(RouteModel.class, routeModel.getId());
-        if(tmpRoute != null){
-            tmpRoute.setDescription(routeModel.getDescription());
-            tmpRoute.setPath(routeModel.getPathString());
-            tmpRoute.setRouteId(routeModel.getRouteId());
-            tmpRoute.save();
-        }
-    }
-
-    public void deleteRoute(String id){
-        RouteModel.deleteAll(RouteModel.class, "mid = ?", id);
-    }
-
-    public void saveMediaFromResponse(ResponseModel responseModel){
-        //Find media order
-        //First image -> set main media = 1
-        //set POI thumbnail path
-        //mediaModel.save();
     }
 
     public void parseJsonAndSaveToDB(JSONObject jsonExperience) //parse content of an experience from JSON file and download media files
@@ -186,7 +155,16 @@ public class ExperienceDatabaseManager
 
     public List<MediaModel> getMediaForEntity(String entityId, String entityType)
     {
-    	return MediaModel.find(MediaModel.class, "experience_Id = ? and entity_Id = ? and entity_Type = ?", this.experienceId, entityId , entityType);
+        return MediaModel.find(MediaModel.class, "experience_Id = ? and entity_Id = ? and entity_Type = ?", new String[]{this.experienceId, entityId, entityType}, "", "media_Order", "");
+    }
+
+    public MediaModel getMediaFromId(String id)
+    {
+        List<MediaModel> media = MediaModel.find(MediaModel.class, "experience_Id = ? and mid = ? ", this.experienceId, id);
+        if(media.size() > 0)
+            return media.get(0);
+        else
+            return  null;
     }
 
 	public List<ResponseModel> getCommentsForEntity(String entityId)
@@ -222,7 +200,7 @@ public class ExperienceDatabaseManager
         return RouteModel.find(RouteModel.class, "experience_Id = ?", this.experienceId);
     }
 
-	public List<ResponseModel> getResponsesForTab(String tabName)//EOI and Summary tabs
+	public List<ResponseModel> getResponsesForTab(String tabName)//EOI for Event tab and ROUTE for Summary tab
 	{
 		List<ResponseModel> responseList = ResponseModel.find(ResponseModel.class, "experience_Id = ? and entity_Type = ? and status = ?",
             this.experienceId, tabName, ResponseModel.STATUS_ACCEPTED);
@@ -248,7 +226,7 @@ public class ExperienceDatabaseManager
 
 	public String[] getEOIFromID(String eoiId)
     {
-        List<EOIModel> objEoi =  EOIModel.find(EOIModel.class, "experience_Id = ? and id = ?", this.experienceId, eoiId);
+        List<EOIModel> objEoi =  EOIModel.find(EOIModel.class, "experience_Id = ? and mid = ?", this.experienceId, eoiId);
         if(objEoi != null && objEoi.size() > 0){
             return new String[]{objEoi.get(0).getName(), objEoi.get(0).getDescription()};
     	}
@@ -302,7 +280,7 @@ public class ExperienceDatabaseManager
             //Delete media items if it is a POI
             if(res.getEntityType().equalsIgnoreCase(ResponseModel.FOR_NEW_POI))
             {
-                ResponseModel.deleteAll(ResponseModel.class, "experience_Id = ? and entity_Id = ?", experienceId, res.getEntityId());
+                ResponseModel.deleteAll(ResponseModel.class, "experience_Id = ? and entity_Id = ?", experienceId, res.getResponseId());
             }
             res.delete();
         }
@@ -325,16 +303,22 @@ public class ExperienceDatabaseManager
         experienceMetaDataModel.save();
     }
 
-    public String addNewExperience(ExperienceMetaDataModel experienceMetaDataModel){
-        List<ExperienceMetaDataModel> tmp = ExperienceMetaDataModel.find(ExperienceMetaDataModel.class, "name like ?", experienceMetaDataModel.getProName());
+    public void updateExperienceOnceUploadedToServer(ExperienceMetaDataModel experienceMetaDataModel){
+        List<ExperienceMetaDataModel> tmp = ExperienceMetaDataModel.find(ExperienceMetaDataModel.class, "mid = ?", experienceMetaDataModel.getExperienceId());
         if(tmp.size() > 0) {//already there -> delete all data
-            return "-1";
+            tmp.get(0).setPublicURL("");
+            tmp.get(0).save();
+        }
+        //Update designerID for all records?
+    }
+
+    public boolean addNewExperience(ExperienceMetaDataModel experienceMetaDataModel){
+        List<ExperienceMetaDataModel> tmp = ExperienceMetaDataModel.find(ExperienceMetaDataModel.class, "name like ?", experienceMetaDataModel.getName());
+        if(tmp.size() > 0) {//already there -> delete all data
+            return false;
         }
         experienceMetaDataModel.save();
-        String exId = experienceMetaDataModel.getExperienceId();
-        experienceMetaDataModel.setExperienceId(exId);
-        experienceMetaDataModel.save();
-        return exId;
+        return true;
     }
 
     public void deleteExperience(String experienceId)
@@ -353,5 +337,61 @@ public class ExperienceDatabaseManager
             mediaModel.setContent(mediaURL);
             mediaModel.save();
         }
+    }
+
+    public void savePoi(POIModel poiModel){
+        poiModel.save();
+    }
+
+    public void saveRoute(RouteModel routeModel){
+        routeModel.save();
+    }
+
+    public void updateRoute(RouteModel routeModel){
+        RouteModel tmpRoute = RouteModel.findById(RouteModel.class, routeModel.getId());
+        if(tmpRoute != null){
+            tmpRoute.setDescription(routeModel.getDescription());
+            tmpRoute.setPath(routeModel.getPathString());
+            tmpRoute.setRouteId(routeModel.getRouteId());
+            tmpRoute.save();
+        }
+    }
+
+    public void deleteRoute(Long id){
+        RouteModel routeModel = RouteModel.findById(RouteModel.class, id);
+        routeModel.delete();
+    }
+
+    //return true if this media is the main media
+    public boolean saveMediaFromResponse(ResponseModel responseModel){
+        //Identify media order, main media or not
+        List<MediaModel> tmp = this.getMediaForEntity(responseModel.getEntityId(), responseModel.getEntityType());
+        //Check if there is any image before
+        boolean hasImage = false;
+        int order = 0;
+        if(tmp.size() > 0) {
+            order = tmp.get(tmp.size() - 1).getOrder() + 1;//max order + 1
+            for (int i = 0; i < tmp.size(); i++)
+                if(tmp.get(i).getContentType().equalsIgnoreCase(MediaModel.TYPE_IMAGE))
+                {
+                    hasImage = true;
+                    break;
+                }
+        }
+        boolean mainMedia = false;//if this is the first media (order = 0) and this is a photo then make this media main media
+        if(!hasImage && responseModel.getContentType().equalsIgnoreCase(MediaModel.TYPE_IMAGE)) {
+            mainMedia = true;
+            //Update the POI's thumbnail
+            List<POIModel> poiModel = POIModel.find(POIModel.class, "mid = ?", responseModel.getEntityId());
+            if(poiModel.size() > 0) {
+                poiModel.get(0).setThumbnailPath(responseModel.getContent());
+                poiModel.get(0).save();
+            }
+        }
+        MediaModel mediaModel = new MediaModel(responseModel.getResponseId(), "",responseModel.getExperienceId(), responseModel.getContentType(),
+                responseModel.getContent(),  "", responseModel.getDescription(), responseModel.getDescription(), responseModel.getEntityType(),
+                responseModel.getEntityId(),responseModel.getSize(), mainMedia,true,order,0);
+        mediaModel.save();
+        return mainMedia;
     }
 }

@@ -48,23 +48,29 @@ public class RouteModel extends SugarRecord {
 		this.poiList = poiList;
 		this.eoiList = eoiList;
 		latLngPath = new ArrayList<LatLng>();
-		if (path.equalsIgnoreCase(""))
-			return;
-		String[]latLngInfo = this.path.split(" ");
-		if(latLngInfo.length >= 2)
-		{
-			int i = 0;
-			while (i < latLngInfo.length)
-			{
-				latLngPath.add(new LatLng(Float.parseFloat(latLngInfo[i]), Float.parseFloat(latLngInfo[i+1])));
-				i+=2;
+		parseLatLngPathFromPathString();
+	}
+
+	public List<LatLng> getLatLngPath() {
+		if(latLngPath.size() == 0 ){
+			parseLatLngPathFromPathString();
+		}
+		return latLngPath;
+	}
+
+	private void parseLatLngPathFromPathString(){
+		if (!path.equalsIgnoreCase("")) {
+			String[] latLngInfo = this.path.split(" ");
+			if (latLngInfo.length >= 2) {
+				int i = 0;
+				while (i < latLngInfo.length) {
+					latLngPath.add(new LatLng(Float.parseFloat(latLngInfo[i]), Float.parseFloat(latLngInfo[i + 1])));
+					i += 2;
+				}
 			}
 		}
 	}
 
-	public List<LatLng> getLatLngPath() {
-		return latLngPath;
-	}
 	public void setPath(String path) {
 		this.path = path;
 	}

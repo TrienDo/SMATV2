@@ -27,6 +27,7 @@ import org.xml.sax.InputSource;
 
 import uk.lancs.sharc.smat.R;
 import uk.lancs.sharc.smat.model.AndroidWebViewInterface;
+import uk.lancs.sharc.smat.model.MediaModel;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
@@ -133,7 +134,7 @@ public class SharcLibrary
 		if(isLocal)
 			path = content;     //string for text media else path to the local media (photo, audio, video)
 		//if(!isLocal && !type.equalsIgnoreCase("text"))
-		if(!isLocal)
+		if(!isLocal && content.lastIndexOf("/")!= -1)
 			path = SharcLibrary.SHARC_MEDIA_FOLDER + content.substring(content.lastIndexOf("/"));//media cached locally
 		//Show text media in form of Title + Content, else Content + title
 		if(type.equalsIgnoreCase("text"))
@@ -141,8 +142,11 @@ public class SharcLibrary
 			//strMedia += "<p style='margin-left:20px'>" +  content.replaceAll("(\r\n|\n)", "<br />") + "</p>";
 			//strMedia += "<div><object style='width: 100%; height: 300px; overflow: auto' type='text/html' data='" + path + "' ></object></div>";
 			try {
-				strMedia += "<div style='margin-left:20px'>" +  SharcLibrary.readTextFile(new FileInputStream(path))+  "</div>";
-			} catch (FileNotFoundException e) {
+                if(path.lastIndexOf("/")!= -1)//There is valid path -> read file for text media
+                    strMedia += "<div style='margin-left:20px'>" +  SharcLibrary.readTextFile(new FileInputStream(path))+  "</div>";
+                else//text is already in the content
+                    strMedia += "<div style='margin-left:20px'>" + content +  "</div>";
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
@@ -341,9 +345,9 @@ public class SharcLibrary
 		try
 		{
 			//Access the corresponding image on local storage
-            //String photoPath = SHARC_MEDIA_FOLDER + "/" +  imageID;
+            String photoPath = SHARC_MEDIA_FOLDER + imageID;
             //Drawable icon = Drawable.createFromPath(sdcard);            
-        	Bitmap b = SharcLibrary.getBitmapFromFile(imageID);
+        	Bitmap b = SharcLibrary.getBitmapFromFile(photoPath);
         	if(b!=null && Math.min(b.getWidth(),b.getHeight()) >= 80)//need big enough image - not logo
         	{
 	        	int scaleW = (int)Math.floor(b.getWidth()/90);

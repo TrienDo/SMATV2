@@ -57,7 +57,7 @@ public class MediaModel extends SugarRecord {
 
     public String getHTMLPresentation()
     {
-        return SharcLibrary.getHTMLCodeForMedia(this.getMediaId().toString(), "media", this.getNoOfLike(), this.commentCount,this.getContentType(), this.getContent(), this.getCaption(),false);
+        return SharcLibrary.getHTMLCodeForMedia(this.getMediaId(), "media", this.getNoOfLike(), this.commentCount,this.getContentType(), this.getContent(), this.getCaption(),false);
     }
     public String getMediaId() {
         return mid;

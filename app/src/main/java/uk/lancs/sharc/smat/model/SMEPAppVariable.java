@@ -3,6 +3,7 @@ package uk.lancs.sharc.smat.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.app.Activity;
 import android.app.Application;
 import android.location.Location;
 
@@ -30,7 +31,7 @@ public class SMEPAppVariable extends SugarApp {
 	private int	newMediaIndex;
 	private Location mockLocation;
 	private long timeThreshold;					//Push media again if the user come back after more than this threshold (in minute, default = 5 mis)
-
+	private Activity activity;
 	public SMEPAppVariable()
 	{
 		isNewExperience = false;
@@ -45,8 +46,17 @@ public class SMEPAppVariable extends SugarApp {
 		mockLocation.setLatitude(54.102060001);
 		mockLocation.setLongitude(-2.608550001);
 		timeThreshold = 5*60*1000; //default = 5 mins * 60 seconds * 1000 milliseconds
+		activity = null;
 	}
-	 
+
+	public Activity getActivity() {
+		return activity;
+	}
+
+	public void setActivity(Activity activity) {
+		this.activity = activity;
+	}
+
 	public boolean isTestMode() {
 		return testMode;
 	}

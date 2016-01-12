@@ -73,6 +73,10 @@ public class POIModel extends SugarRecord {
 			return thumbnailPath.substring(thumbnailPath.lastIndexOf("/"));
 	}
 
+	public void setThumbnailPath(String path){
+		this.thumbnailPath = path;
+	}
+
 	public List<LatLng> getPoiViz() {
 		List<LatLng> poiViz = new ArrayList<LatLng>();
 		//Get POI Viz

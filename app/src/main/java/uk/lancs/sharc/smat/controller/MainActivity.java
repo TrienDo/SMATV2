@@ -1,8 +1,10 @@
 package uk.lancs.sharc.smat.controller;
 
+import uk.lancs.sharc.smat.model.ContentTriggerSource;
 import uk.lancs.sharc.smat.model.MapWindowAdapter;
 import uk.lancs.sharc.smat.model.MediaListAdapter;
 import uk.lancs.sharc.smat.model.MediaModel;
+import uk.lancs.sharc.smat.model.TapContentTriggerSource;
 import uk.lancs.sharc.smat.service.CloudManager;
 import uk.lancs.sharc.smat.service.DropboxCloud;
 import uk.lancs.sharc.smat.service.ErrorReporter;
@@ -52,8 +54,6 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.media.MediaRecorder;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -82,8 +82,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.dropbox.sync.android.DbxDatastore;
-import com.dropbox.sync.android.DbxTable;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
@@ -688,6 +686,8 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
     {
         try
         {
+            SMEPAppVariable mySMEPAppVariable = (SMEPAppVariable) getApplicationContext();
+            mySMEPAppVariable.setActivity(this);
             restfulManager = new RestfulManager(MainActivity.this);
             btnResponse = (Button) findViewById(R.id.btnAddResponse);
             btnStartRoute = (Button) findViewById(R.id.btnStartRoute);
@@ -992,10 +992,10 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
         }
     }
 
-    public void displayMediaTab(int poiID,String type)
+    public void displayMediaTab(int poiIndex,String type)
     {
-        currentPOIIndex = poiID;
-        List<String> mediaList = selectedExperienceDetail.getPOIHtmlListItems(poiID, initialLocation);
+        currentPOIIndex = poiIndex;
+        List<String> mediaList = selectedExperienceDetail.getPOIHtmlListItems(currentPOIIndex, initialLocation);
         displayMediaItems(mediaList, 0);
 
         if(smepSettings.isPushingMedia())   //Push -> Go to the POI Media tab
@@ -1072,7 +1072,7 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
         ArrayList<String> responseList = new ArrayList<String>();
         if(selectedExperienceDetail!=null) {
             //Briefing
-            String intro = "<div>Here you can review and upload your authoring actions for the experience: '" + selectedExperienceDetail.getMetaData().getProName() + "'. You may need to scroll the screen down.</div>";
+            String intro = "<div>Here you can review and upload your authoring actions for the experience: '" + selectedExperienceDetail.getMetaData().getName() + "'. You may need to scroll the screen down.</div>";
             //Get summary info
             String summaryInfo = selectedExperienceDetail.getExperienceSumaryInfo();
             //Get
@@ -1217,9 +1217,9 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
                     String exDesc = "This experience was initially authored using " + getString(R.string.app_name) + " - V" + getString(R.string.app_version) + " at " + new Date().toString();
                     ExperienceMetaDataModel selectedExperienceMeta = new ExperienceMetaDataModel(SharcLibrary.getIdString(pref_cloudAccId), exName, exDesc, SharcLibrary.getMySQLDateStamp(), SharcLibrary.getMySQLDateStamp(),
                             "-1", false, 1, initialLocation.latitude + " " + initialLocation.longitude, "", "###SMAT###", "", 0, "");
-                    String exId = experienceDatabaseManager.addNewExperience(selectedExperienceMeta);
-                    if( !exId.equalsIgnoreCase("-1")){
-                        selectedExperienceMeta.setExperienceId(exId);
+
+                    if( experienceDatabaseManager.addNewExperience(selectedExperienceMeta)){
+                        experienceDatabaseManager.setSelectedExperience(selectedExperienceMeta.getExperienceId());
                         selectedExperienceDetail = new ExperienceDetailsModel(experienceDatabaseManager, true);
                         selectedExperienceDetail.setMetaData(selectedExperienceMeta);
                         getSlidingMenu().toggle();
@@ -1266,7 +1266,7 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
                             .visible(true)
             );
             //all experiences
-            nearbyExperienceName.add(allExperienceMetaData.get(i).getProName());
+            nearbyExperienceName.add(allExperienceMetaData.get(i).getName());
             nearbyExperiences.add(i);//key = index of current list, value = index of marker --> reuse marker event
             //Nearby only
 			/*
@@ -1277,7 +1277,7 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
                 Location.distanceBetween(exLocation.latitude,exLocation.longitude, initialLocation.latitude,initialLocation.longitude, results);
                 if(results[0] < 5000)//radius of circle
                 {
-                    nearbyExperienceName.add(allExperienceMetaData.get(i).getProName());
+                    nearbyExperienceName.add(allExperienceMetaData.get(i).getName());
                     nearbyExperiences.add(i);//key = index of current list, value = index of marker --> reuse marker event
                 }
             }
@@ -1322,35 +1322,38 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
         final ExperienceMetaDataModel selectedExperienceMeta = allExperienceMetaData.get(Integer.parseInt(markerTitle));
         if(isOnline)
         {
+            int proSize = selectedExperienceMeta.getSize();
+            if(proSize == 0)
+                proSize = 1;
             AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
-            alert.setTitle(selectedExperienceMeta.getProName())
-                    .setMessage(selectedExperienceMeta.getProDesc() + " This experience is designed by " + selectedExperienceMeta.getProAuthName() + " on " + selectedExperienceMeta.getProDate() + ".")
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setPositiveButton("Download", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            experienceDatabaseManager.addOrUpdateExperience(selectedExperienceMeta);
-                            //clearMap();
-                            experienceDatabaseManager.setSelectedExperience(selectedExperienceMeta.getExperienceId());
-                            selectedExperienceDetail = new ExperienceDetailsModel(experienceDatabaseManager, true);
-                            selectedExperienceDetail.setMetaData(selectedExperienceMeta);
-                            smepInteractionLog.addLog(InteractionLog.DOWNLOAD_ONLINE_EXPERIENCE, selectedExperienceMeta.getProName());
-                            restfulManager.downloadExperience(selectedExperienceMeta.getExperienceId());
-                            setSelectedTabIcons(0);
-                        }
-                    })
-                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            smepInteractionLog.addLog(InteractionLog.CANCEL_DOWNLOAD_EXPERIENCE, selectedExperienceMeta.getProName());
-                        }
-                    });
+            alert.setTitle(selectedExperienceMeta.getName() + " (" + proSize + " MB)")
+            .setMessage(selectedExperienceMeta.getDescription() + selectedExperienceMeta.getSummary())
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton("Download", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        experienceDatabaseManager.addOrUpdateExperience(selectedExperienceMeta);
+                        //clearMap();
+                        experienceDatabaseManager.setSelectedExperience(selectedExperienceMeta.getExperienceId());
+                        selectedExperienceDetail = new ExperienceDetailsModel(experienceDatabaseManager, true);
+                        selectedExperienceDetail.setMetaData(selectedExperienceMeta);
+                        smepInteractionLog.addLog(InteractionLog.DOWNLOAD_ONLINE_EXPERIENCE, selectedExperienceMeta.getName());
+                        restfulManager.downloadExperience(selectedExperienceMeta.getExperienceId());
+                        setSelectedTabIcons(0);
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        smepInteractionLog.addLog(InteractionLog.CANCEL_DOWNLOAD_EXPERIENCE, selectedExperienceMeta.getName());
+                    }
+                });
             setDialogFontSizeAndShow(alert, FONT_SIZE);
                     //.show();
         }
         else
         {
             AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
-            alert.setTitle(selectedExperienceMeta.getProName())
-                    .setMessage(selectedExperienceMeta.getProDesc() + " This experience is designed by " + selectedExperienceMeta.getProAuthName() + " on " + selectedExperienceMeta.getProDate() + ".")
+            alert.setTitle(selectedExperienceMeta.getName())
+                    .setMessage(selectedExperienceMeta.getDescription() + selectedExperienceMeta.getSummary())
                     //.setIcon(android.R.drawable.ic_dialog_alert)
                     .setPositiveButton("Edit", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
@@ -1359,17 +1362,17 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
                             selectedExperienceDetail.setMetaData(selectedExperienceMeta);
                             presentExperience();
                             setSelectedTabIcons(0);
-                            smepInteractionLog.addLog(InteractionLog.PLAY_EXPERIENCE, selectedExperienceMeta.getProName());
+                            smepInteractionLog.addLog(InteractionLog.PLAY_EXPERIENCE, selectedExperienceMeta.getName());
                         }
                     })
                     .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
-                            smepInteractionLog.addLog(InteractionLog.CANCEL_PLAY_EXPERIENCE, selectedExperienceMeta.getProName());
+                            smepInteractionLog.addLog(InteractionLog.CANCEL_PLAY_EXPERIENCE, selectedExperienceMeta.getName());
                         }
                     })
                     .setNeutralButton("Delete", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
-                            smepInteractionLog.addLog(InteractionLog.DELETE_EXPERIENCE, selectedExperienceMeta.getProName());
+                            smepInteractionLog.addLog(InteractionLog.DELETE_EXPERIENCE, selectedExperienceMeta.getName());
                             //Delete entry
                             experienceDatabaseManager.deleteExperience(selectedExperienceMeta.getExperienceId());
                             //Reload map
@@ -1473,7 +1476,9 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
                 {
                     Toast.makeText(getApplicationContext(), "This circle shows your current location", Toast.LENGTH_LONG).show();
                 } else {
-                    pushMediaToUser(Integer.valueOf(arg0.getTitle()));
+                    currentPOIIndex = Integer.valueOf(arg0.getTitle());
+                    ContentTriggerSource contentTriggerSource = new TapContentTriggerSource(currentPOIIndex, getApplicationContext(), MainActivity.this, ContentTriggerSource.SOURCE_MAP_TOUCH);
+                    contentTriggerSource.renderContent();
                     System.out.println("You've tap POI marker:" + arg0.getTitle());
                 }
                 if(currentPos != null)
@@ -1486,24 +1491,11 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
     @Override
     public void onMapClick(LatLng arg0) {
         // Click on a trigger zone
-        if(selectedExperienceDetail != null)
-            pushMediaToUser(selectedExperienceDetail.getTriggerZoneIndexFromLocation(arg0));
-    }
-
-    public void pushMediaToUser(int poiID)
-    {
-        try
-        {
-            //currentPOIIndex = Integer.valueOf(arg0.getTitle());
-            displayMediaTab(poiID, "FROM_MAP_PULL");
-            if(smepSettings.isSoundNotification())
-            {
-                Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-                Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
-                r.play();
-            }
+        if(selectedExperienceDetail != null) {
+            currentPOIIndex = selectedExperienceDetail.getTriggerZoneIndexFromLocation(arg0);
+            ContentTriggerSource contentTriggerSource = new TapContentTriggerSource(currentPOIIndex, getApplicationContext(), MainActivity.this, ContentTriggerSource.SOURCE_MAP_TOUCH);
+            contentTriggerSource.renderContent();
         }
-        catch (Exception e) {Log.e(TAG, "Error when pushMediaToUser: " + e.getMessage());}
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -1596,7 +1588,7 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
                 float[] results = new float[1];
                 Location.distanceBetween(lastLatLng.latitude,lastLatLng.longitude, thisLatLng.latitude,thisLatLng.longitude, results);
                 //if(results[0] < 10) {
-                if(location.getAccuracy() <= 15 && results[0] >= 5) {
+                if(location.getAccuracy() <= 150 && results[0] >= 5) {
                     curRoute.getLatLngPath().add(thisLatLng);
                     curRoute.setPath(curRoute.getPathString() + " " + String.valueOf(thisLatLng.latitude + " " + String.valueOf(thisLatLng.longitude)));
                     curRoutePath.add(mMap.addPolyline(new PolylineOptions().add(lastLatLng).add(thisLatLng).width(5).color(Color.RED)));
@@ -1685,9 +1677,9 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
             case TAKE_PICTURE:
                 if (resultCode == RESULT_OK) {
                     String[] entity = getAssociatedEntity();
-                    String id = outputFile.substring(outputFile.lastIndexOf(File.separator) + 1, outputFile.lastIndexOf("."));
-                    ResponseModel res = new ResponseModel(id, selectedExperienceDetail.getMetaData().getExperienceId(), "-1", MediaModel.TYPE_IMAGE,
-                            outputFile, "", entity[0], entity[1], ResponseModel.STATUS_FOR_UPLOAD, -1, SharcLibrary.getMySQLDateStamp());
+                    String id = SharcLibrary.getIdString(pref_cloudAccId);
+                    ResponseModel res = new ResponseModel(id, selectedExperienceDetail.getMetaData().getExperienceId(), "", MediaModel.TYPE_IMAGE,
+                            outputFile, "", entity[0], entity[1], ResponseModel.STATUS_FOR_UPLOAD, 0, SharcLibrary.getMySQLDateStamp());
                     smepInteractionLog.addLog(InteractionLog.ADD_RESPONSE_IMAGE, entity[0] + "#" + entity[1]);
                     //res.setFileUri(fileUri);
                     addDescription(res);
@@ -1696,9 +1688,9 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
             case CAPTURE_VIDEO:
                 if (resultCode == RESULT_OK) {
                     String[] entity = getAssociatedEntity();
-                    String id = outputFile.substring(outputFile.lastIndexOf(File.separator) + 1, outputFile.lastIndexOf("."));
+                    String id = SharcLibrary.getIdString(pref_cloudAccId);
                     ResponseModel res = new ResponseModel(id, selectedExperienceDetail.getMetaData().getExperienceId(), "-1", MediaModel.TYPE_VIDEO,
-                            outputFile, "", entity[0], entity[1], ResponseModel.STATUS_FOR_UPLOAD, -1, SharcLibrary.getMySQLDateStamp());
+                            outputFile, "", entity[0], entity[1], ResponseModel.STATUS_FOR_UPLOAD, 0, SharcLibrary.getMySQLDateStamp());
                     smepInteractionLog.addLog(InteractionLog.ADD_RESPONSE_VIDEO, entity[0] + "#" + entity[1]);
                     addDescription(res);
                 }
@@ -1858,10 +1850,10 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
             public void onClick(DialogInterface dialog, int whichButton) {
                 EditText content = (EditText) textEntryView.findViewById(R.id.editTextMediaContentD);
                 EditText title = (EditText) textEntryView.findViewById(R.id.editTextTitleD);
-                String id = String.valueOf((new Date()).getTime());
+                String id = SharcLibrary.getIdString(pref_cloudAccId);
                 String[] entity = getAssociatedEntity();
-                ResponseModel res = new ResponseModel(id, selectedExperienceDetail.getMetaData().getExperienceId(), "-1", MediaModel.TYPE_TEXT,
-                        content.getText().toString(), title.getText().toString(), entity[0], entity[1], ResponseModel.STATUS_FOR_UPLOAD, -1, SharcLibrary.getMySQLDateStamp());
+                ResponseModel res = new ResponseModel(id, selectedExperienceDetail.getMetaData().getExperienceId(), "", MediaModel.TYPE_TEXT,
+                        content.getText().toString(), title.getText().toString(), entity[0], entity[1], ResponseModel.STATUS_FOR_UPLOAD, 0, SharcLibrary.getMySQLDateStamp());
                 selectedExperienceDetail.addMyResponse(res);
                 selectedExperienceDetail.addNewMediaItem(res);
                 showResponseDone();
@@ -1886,7 +1878,7 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
                 break;
             case 1:
                 mEntityType = ResponseModel.FOR_POI;
-                mEntityID = selectedExperienceDetail.getPOIID(currentPOIIndex).toString();
+                mEntityID = selectedExperienceDetail.getPOIID(currentPOIIndex);
                 break;
             case 2:
                 mEntityType = ResponseModel.FOR_EOI;
@@ -1987,11 +1979,11 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
                 }
                 else {
                     stopRecording();
-                    String id = outputFile.substring(outputFile.lastIndexOf(File.separator) + 1, outputFile.lastIndexOf("."));
+                    String id = SharcLibrary.getIdString(pref_cloudAccId);
                     String[] entity = getAssociatedEntity();
                     //ResponseModel res = new ResponseModel(id, "Waiting", "audio", "", outputFile, entity[0], entity[1], "", "NEW", "NEW");
-                    ResponseModel res = new ResponseModel(id, selectedExperienceDetail.getMetaData().getExperienceId(), "-1", MediaModel.TYPE_AUDIO,
-                            outputFile, "", entity[0], entity[1], ResponseModel.STATUS_FOR_UPLOAD, -1, SharcLibrary.getMySQLDateStamp());
+                    ResponseModel res = new ResponseModel(id, selectedExperienceDetail.getMetaData().getExperienceId(), "", MediaModel.TYPE_AUDIO,
+                            outputFile, "", entity[0], entity[1], ResponseModel.STATUS_FOR_UPLOAD, 0, SharcLibrary.getMySQLDateStamp());
 
                     //selectedExperienceDetail.addNewMediaItem(res);
                     smepInteractionLog.addLog(InteractionLog.ADD_RESPONSE_AUDIO, entity[0] + "#" + entity[1]);
@@ -2154,7 +2146,7 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
         alert.setTitle("Delete an authoring action");
         //alert.setCancelable(false);
-        if(selectedExperienceDetail.getMyResponseAt(index).getEntityType().equalsIgnoreCase("NEW"))
+        if(selectedExperienceDetail.getMyResponseAt(index).getEntityType().equalsIgnoreCase(ResponseModel.FOR_NEW_POI))
             alert.setMessage("Are you sure you want to delete this POI and its associated media items?");
         else
             alert.setMessage("Are you sure you want to delete this authoring action?");
@@ -2191,7 +2183,6 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
 
         protected String doInBackground(String... args)
         {
-            DbxDatastore mDatastore = null;
             try {
                 //Connect to datastore
 
@@ -2201,18 +2192,13 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
                 //Get the index of the response
                 int resIndex = Integer.parseInt(args[0]);
                 ResponseModel response = selectedExperienceDetail.getMyResponseAt(resIndex);
-                uploadOneResponse(resIndex, response, mDatastore);
+                uploadOneResponse(resIndex, response);
                 //displayResponseTab();
             }
             catch (Exception e)
             {
                 e.printStackTrace();
                 isError = true;
-            }
-            finally
-            {
-                if(mDatastore != null)
-                    mDatastore.close();
             }
             return null;
         }
@@ -2257,28 +2243,21 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
 
         protected String doInBackground(String... args)
         {
-            DbxDatastore mDatastore = null;
             try {
                 //Connect to datastore
 
                 String proPath = selectedExperienceDetail.getMetaData().getExperienceId().toString();
                 //Else local project
-
                 //Get the index of the response
                 for(int index = 0; index < selectedExperienceDetail.getMyResponses().size(); index++) {
                     ResponseModel response = selectedExperienceDetail.getMyResponseAt(index);
-                    uploadOneResponse(index, response, mDatastore);
+                    uploadOneResponse(index, response);
                 }
                 //displayResponseTab();
             }
             catch (Exception e) {
                 e.printStackTrace();
                 isError = true;
-            }
-            finally
-            {
-                if(mDatastore != null)
-                    mDatastore.close();
             }
             return null;
         }
@@ -2306,13 +2285,11 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
         }
     }
 
-    public void uploadOneResponse(int index, ResponseModel response, DbxDatastore mDatastore) throws Exception {
-        DbxTable authoringTable = null;
+    public void uploadOneResponse(int index, ResponseModel response) throws Exception {
         if(response.getEntityType().equalsIgnoreCase("NEW"))//New POI
         {
-            authoringTable = mDatastore.getTable("POIs");
             //Insert a new row to the POI table
-            POIModel poi = selectedExperienceDetail.getPOIFromID(response.getId().toString());
+            POIModel poi = selectedExperienceDetail.getPOIFromID(response.getResponseId());
             if(poi != null) {
 
             }
@@ -2321,9 +2298,8 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
         }
         else if(response.getEntityType().equalsIgnoreCase("ROUTE"))//New Route
         {
-            authoringTable = mDatastore.getTable("Routes");
             //Insert a new row to the POI table
-            RouteModel route = selectedExperienceDetail.getRouteFromID(response.getId().toString());
+            RouteModel route = selectedExperienceDetail.getRouteFromID(response.getResponseId());
             if(route != null) {
 
             }
@@ -2332,10 +2308,14 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
         }
         else // New media
         {
+            MediaModel mediaModel = selectedExperienceDetail.getMediaFromId(response.getResponseId());
+            if(mediaModel != null) {
 
+            }
+            else
+                throw new Exception();
         }
-
-        selectedExperienceDetail.removeUploadedResponseAt(index);
+        //selectedExperienceDetail.removeUploadedResponseAt(index);
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -2343,7 +2323,7 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
     //////////////////////////////////////////////////////////////////////////////
     public void createNewExperienceOnServer()
     {
-        if(selectedExperienceDetail.getMetaData().getProPublicURL().contains("###SMAT###"))//Created by SMAP
+        if(selectedExperienceDetail.getMetaData().getPublicURL().contains("###SMAT###"))//Created by SMAP
         {
             try {
                 //Insert two SQL tables
@@ -2394,13 +2374,13 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
                     addNewPOI();
                 } else {
 
-                    String id = String.valueOf(new Date().getTime());
+                    String id = SharcLibrary.getIdString(pref_cloudAccId);
                     String triggerZone = "circle 00ff00 " + triggerzoneSize + " " + latLng;
                     //add new POI and set selected POI
-                    currentPOIIndex = selectedExperienceDetail.addNewPOI(SharcLibrary.getIdString(pref_cloudAccId), poiName, "", latLng, triggerZone, poiType, mMap, (SMEPAppVariable) getApplicationContext());
+                    currentPOIIndex = selectedExperienceDetail.addNewPOI(id, poiName, "", latLng, triggerZone, poiType, mMap, (SMEPAppVariable) getApplicationContext());
                     //ResponseModel res = new ResponseModel(id, "Waiting", "text", "", poiName, "NEW", latLng, "", "NEW", "NEW");//Desc is used to store trigger zone
-                    ResponseModel res = new ResponseModel(id, selectedExperienceDetail.getMetaData().getExperienceId(), "-1", MediaModel.TYPE_TEXT,
-                            poiName, latLng, ResponseModel.FOR_NEW_POI,latLng, ResponseModel.STATUS_FOR_UPLOAD, -1, SharcLibrary.getMySQLDateStamp());
+                    ResponseModel res = new ResponseModel(id, selectedExperienceDetail.getMetaData().getExperienceId(), "", ResponseModel.FOR_NEW_POI,
+                            poiName, poiType, ResponseModel.FOR_NEW_POI,"", ResponseModel.STATUS_FOR_UPLOAD, -1, SharcLibrary.getMySQLDateStamp());
                     selectedExperienceDetail.addMyResponse(res);
                     smepInteractionLog.addLog(InteractionLog.CREATE_POI, poiName);
                     //Go to the POI tab
@@ -2459,7 +2439,7 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
         alert.setMessage("Please enter route name (You will be asked for more details when you finish the route. Note: if you encounter likely accessibility obstacles on the route please create POIs for these.)");
         final EditText etRouteName = new EditText(this);
         etRouteName.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
-        etRouteName.setText(selectedExperienceDetail.getMetaData().getProName());
+        etRouteName.setText(selectedExperienceDetail.getMetaData().getName());
         alert.setView(etRouteName);
 
         alert.setPositiveButton("Create", new DialogInterface.OnClickListener() {
@@ -2480,11 +2460,10 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
                                     .icon(BitmapDescriptorFactory.fromResource(R.raw.start))
                                     .visible(true)
                     );
-                    curRoute = new RouteModel(SharcLibrary.getIdString(pref_cloudAccId), "",selectedExperienceDetail.getMetaData().getId().toString(),routeName, getString(R.string.message_route_recording),
+                    curRoute = new RouteModel(SharcLibrary.getIdString(pref_cloudAccId), "",selectedExperienceDetail.getMetaData().getExperienceId(),routeName, getString(R.string.message_route_recording),
                             true, "#ff0000", String.valueOf(startPoint.latitude) + " " + String.valueOf(startPoint.longitude), "","");
                     prevLocation = lastKnownLocation;
-                    Long routeId = selectedExperienceDetail.addNewRoute(curRoute);
-                    curRoute.setRouteId(routeId.toString());
+                    selectedExperienceDetail.addNewRoute(curRoute);
                     smepInteractionLog.addLog(InteractionLog.START_ROUTE, routeName);
                 }
             }
@@ -2562,11 +2541,9 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
                     curRoute.setName(routeName);
                     curRoute.setDescription(desc);
                     selectedExperienceDetail.updateRoute(curRoute);
-                    //Response
-
-                    ResponseModel res = new ResponseModel(curRoute.getRouteId().toString(), selectedExperienceDetail.getMetaData().getExperienceId(), "-1", ResponseModel.FOR_ROUTE,
-                            outputFile, "", ResponseModel.FOR_ROUTE, "", ResponseModel.STATUS_FOR_UPLOAD, -1, SharcLibrary.getMySQLDateStamp());
-
+                    //Response - just the id & name (for displaying) of the route is important -> other info from the route will be retrieved later when uploading to server
+                    ResponseModel res = new ResponseModel(curRoute.getId().toString(), selectedExperienceDetail.getMetaData().getExperienceId(), "", ResponseModel.FOR_ROUTE,
+                            curRoute.getName(), curRoute.getDescription(), ResponseModel.FOR_ROUTE, "", ResponseModel.STATUS_FOR_UPLOAD, -1, SharcLibrary.getMySQLDateStamp());
                     selectedExperienceDetail.addMyResponse(res);
                     curRoutePath.clear();
                     smepInteractionLog.addLog(InteractionLog.SAVE_ROUTE, routeName);
@@ -2804,6 +2781,39 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
             setDialogFontSizeAndShow(alert, FONT_SIZE);
         }
     }
+
+    public void renderMedia(final int contentTriggerSourceType, final int displayMode, final int mediaIndex){//may need to change later for Commander scenario as only one media is shown not all media of a POI
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                SMEPAppVariable mySMEPAppVariable = (SMEPAppVariable) getApplicationContext();
+                if (mySMEPAppVariable.isNewMedia()) {
+                    mySMEPAppVariable.setNewMedia(false);
+                    displayMediaTab(mySMEPAppVariable.getNewMediaIndex(), String.valueOf(contentTriggerSourceType));
+                }
+            }
+        });
+    }
+
+    public void displayOneMedia(int mediaIndex){
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle("Please enter title for the media (optional)");
+        final AlertDialog alert = dialog.create();
+        String htmlMediaItem = selectedExperienceDetail.getPOIHtmlListItems(currentPOIIndex, initialLocation).get(mediaIndex);
+        final WebView webviewMedia = new WebView(this);
+        String base = "file://" + SharcLibrary.SHARC_MEDIA_FOLDER + "/";
+        SharcLibrary.setupWebView(webviewMedia, MainActivity.this);
+        webviewMedia.getSettings().setBuiltInZoomControls(true);
+        webviewMedia.loadDataWithBaseURL(base, htmlMediaItem, "text/html", "utf-8", null);
+        dialog.setView(webviewMedia);
+        dialog.setNegativeButton("Close", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                // Canceled.
+            }
+        });
+        setDialogFontSizeAndShow(dialog, FONT_SIZE);
+    }
+
 
     public List<ExperienceMetaDataModel> getAllExperienceMetaData(){
         return allExperienceMetaData;

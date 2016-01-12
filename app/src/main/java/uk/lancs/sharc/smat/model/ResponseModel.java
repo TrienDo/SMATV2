@@ -163,7 +163,7 @@ public class ResponseModel extends SugarRecord {
 		this.entityId = entityId;
 	}
 
-	public String getMid() {
+	public String getResponseId() {
 		return mid;
 	}
 
