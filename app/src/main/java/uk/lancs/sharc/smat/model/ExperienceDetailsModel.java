@@ -636,7 +636,7 @@ public class ExperienceDetailsModel {
 		return allRoutes.get(index);
 	}
 
-	public String getOverallSummary()
+	public String getOverallSummary(String designerName)
 	{
 		String routeInfo = "";
 		if(allRoutes.size() > 0)
@@ -644,6 +644,6 @@ public class ExperienceDetailsModel {
 			for(int i = 0; i < allRoutes.size(); i++)
 				routeInfo += " [Route name: " + allRoutes.get(i).getName() + " (" +   String.format("%.2f", allRoutes.get(i).getDistance()) + " km). " + allRoutes.get(i).getDescription() +"].";
 		}
-		return "This experience has " + allRoutes.size() + " route(s), " + allEOIs.size() + " EOI(s), and " + allPOIs.size() + " POI(s)." + routeInfo;
+		return "This experience has designer by " + designerName + " since " + metaData.getCreatedDate() + ". It has " + allRoutes.size() + " route(s), " + allEOIs.size() + " EOI(s), and " + allPOIs.size() + " POI(s)." + routeInfo;
 	}
 }

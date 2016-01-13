@@ -2,10 +2,13 @@ package uk.lancs.sharc.smat.service;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.StrictMode;
 import android.widget.Toast;
 
+
+import com.google.android.gms.maps.model.LatLng;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -13,13 +16,13 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,20 +30,25 @@ import java.util.List;
 import uk.lancs.sharc.smat.controller.MainActivity;
 import uk.lancs.sharc.smat.model.ExperienceMetaDataModel;
 import uk.lancs.sharc.smat.model.JSONParser;
+import uk.lancs.sharc.smat.model.MediaModel;
 import uk.lancs.sharc.smat.model.POIModel;
 import uk.lancs.sharc.smat.model.ResponseModel;
+import uk.lancs.sharc.smat.model.RouteModel;
 
 /**
  * Created by SHARC on 11/12/2015.
  */
 public class RestfulManager {
     //RESTful APIs
-    //public static final String api_path = "http://wraydisplay.lancs.ac.uk/SHARC20/api/v1/";
-    public static final String api_path = "http://148.88.227.222/SHARC20/api/v1/";
+    public static final String api_path = "http://wraydisplay.lancs.ac.uk/SHARC20/api/v1/";
+    //public static final String api_path = "http://148.88.227.222/SHARC20/api/v1/";
     public static final String api_log_in =  api_path + "users";
     public static final String api_experiences = api_path + "experiences";
     public static final String api_get_experience_snapshot = api_path + "experienceSnapshot/";
-    public static final String api_submit_response = api_path + "responses";
+    public static final String api_media = api_path + "media";
+    public static final String api_poi = api_path + "pois";
+    public static final String api_route = api_path + "routes";
+    public static final String api_experience_publish = api_path + "publishExperience/";
 
     public static final String STATUS_SUCCESS = "success";
 
@@ -92,15 +100,43 @@ public class RestfulManager {
         new LoginServerThread().execute();
     }
 
-    public void uploadPoi(POIModel poi){
-
+    public boolean uploadPoi(POIModel poi){
+        return uploadEntity(poi.toJson(), api_poi);
     }
 
-    public void uploadRoute(POIModel poi){
-
+    public boolean uploadRoute(RouteModel route){
+        //new UploadEntityThread(route.toJson(), api_route, "UPLOAD_ROUTE").execute();
+        return uploadEntity(route.toJson(), api_route);
     }
-    public void uploadMedia(ResponseModel res){
-        new SubmitResponseThread(res).execute();
+
+    public boolean uploadMediaFromResponse(ResponseModel response, MediaModel media){
+        JSONObject mediaExperience = response.toMediaJson();
+        try {
+            mediaExperience.put("mainMedia", media.isMainMedia());
+            mediaExperience.put("visible", media.isVisible());
+            mediaExperience.put("order", media.getOrder());
+            return uploadEntity(mediaExperience, api_media);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean uploadEntity(JSONObject jsonEntity, String apiPath){
+        try {
+            HttpResponse res = makePostRequest(apiPath, jsonEntity);
+            JSONObject json = getJsonFromHttpResponse(res);
+            String ret = json.getString("status");
+            if (ret.equalsIgnoreCase(RestfulManager.STATUS_SUCCESS))
+                return true;
+            else
+                return false;
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
 
@@ -247,67 +283,32 @@ public class RestfulManager {
         }
     }
 
-
-
-
     /*
-		This inner class helps
-			- Submit a response to MySQL database
-		Note this class needs retrieve information from server so it has to run in background
+		This inner class helps upload an entity (poi/route/media) to MySQL database on server
 	*/
-    class SubmitResponseThread extends AsyncTask<String, String, String>
+    class UploadEntityThread extends AsyncTask<String, String, String>
     {
         //Before starting the background thread -> Show Progress Dialog
-        //private ProgressDialog pDialog;
-        private ResponseModel response;
+        HttpResponse res;
+        private JSONObject jsonEntity;
+        private String apiPath;
+        private String logInfo;
 
-        public SubmitResponseThread(ResponseModel response){
-            this.response = response;
+        public UploadEntityThread(JSONObject jsonEntity, String apiPath, String logInfo){
+            this.jsonEntity = jsonEntity;
+            this.apiPath = apiPath;
+            this.logInfo = logInfo;
         }
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            /*pDialog = new ProgressDialog(activity);
-            pDialog.setMessage("Tracking consumer vs. experiences. Please wait...");
-            pDialog.setIndeterminate(false);
-            pDialog.setCancelable(false);
-            pDialog.show();
-            */
         }
-
-        //Update designer and experience info
         protected String doInBackground(String... args)
         {
             try
             {
-                JSONParser jParser = new JSONParser();
-                List<NameValuePair> params = new ArrayList<NameValuePair>();
-                //Response info
-                params.add(new BasicNameValuePair("apiKey", getApiKey()));
-                params.add(new BasicNameValuePair("userId", getUserId().toString()));
-
-                params.add(new BasicNameValuePair("id", response.getResponseId()));
-                params.add(new BasicNameValuePair("experienceId", response.getExperienceId().toString()));
-
-                params.add(new BasicNameValuePair("contentType", response.getContentType()));
-                params.add(new BasicNameValuePair("content", response.getContent()));
-                params.add(new BasicNameValuePair("description", response.getDescription()));
-
-                params.add(new BasicNameValuePair("entityType", response.getEntityType()));
-                params.add(new BasicNameValuePair("entityId", response.getEntityId()));
-                params.add(new BasicNameValuePair("status", response.getStatus()));
-
-                params.add(new BasicNameValuePair("size", "" + response.getSize()));
-                params.add(new BasicNameValuePair("submittedDate", response.getSubmittedDate()));
-                //insert MySQL data
-                JSONObject json = jParser.makeHttpRequest(RestfulManager.api_submit_response, "POST", params);
-                String ret = json.getString("status");
-                if (ret.equalsIgnoreCase(RestfulManager.STATUS_SUCCESS)) {
-                    //((MainActivity)activity).getSelectedExperienceDetail().setIsUpdatedConsumerExperience(true);
-                    //Delete response here
-                }
-
-                //smepInteractionLog.addLog(initialLocation, mDbxAcctMgr, InteractionLog.VIEW_ONLINE_EXPERIENCES, logData);
+                res = makePostRequest(apiPath, jsonEntity);
+                //smepInteractionLog.addLog(initialLocation, mDbxAcctMgr, InteractionLog.VIEW_ONLINE_EXPERIENCES, logInfo);
             }
             catch (Exception e)
             {
@@ -318,12 +319,27 @@ public class RestfulManager {
         //After completing background task ->Dismiss the progress dialog
         protected void onPostExecute(String file_url)
         {
-            // dismiss the dialog after getting all files
             //pDialog.dismiss();
-            // updating UI from Background Thread
             activity.runOnUiThread(new Runnable() {
                 public void run() {
-                    //
+                    try
+                    {
+                        JSONObject json = getJsonFromHttpResponse(res);
+                        String ret = null;
+                        try {
+                            ret = json.getString("status");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        if (ret.equalsIgnoreCase(RestfulManager.STATUS_SUCCESS)) {
+                            //smepInteractionLog.addLog(initialLocation, mDbxAcctMgr, InteractionLog.VIEW_ONLINE_EXPERIENCES, logData);
+                        }
+                        else {
+                            Toast.makeText(activity, json.getString("data"), Toast.LENGTH_LONG).show();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             });
         }
@@ -452,6 +468,91 @@ public class RestfulManager {
 
                     if(isError)
                         Toast.makeText(activity, "Error when creating the experience on server. Please try again", Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+    }
+
+
+    public void publishExperience(String imagePath){
+        new UpdatePublishedExperiencesThread().execute(imagePath);
+    }
+    /*
+        This inner class helps update meta data for a published experience
+    */
+    class UpdatePublishedExperiencesThread extends AsyncTask<String, String, String>
+    {
+        //Before starting the background thread -> Show Progress Dialog
+        private boolean isError = false;
+        private ProgressDialog pDialog;
+        HttpResponse res;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pDialog = new ProgressDialog(activity);
+            pDialog.setMessage("Publishing the experience. Please wait...");
+            pDialog.setIndeterminate(false);
+            pDialog.setCancelable(false);
+            pDialog.show();
+        }
+
+        //Update designer and experience info
+        protected String doInBackground(String... args)
+        {
+            String imagePath = args[0];
+            try
+            {
+                ExperienceMetaDataModel experienceMetaDataModel = ((MainActivity) activity).getSelectedExperienceDetail().getMetaData();
+                if(!imagePath.equalsIgnoreCase(""))
+                {
+                    File mediaFile = new File(imagePath);
+                    String[] ret = cloudManager.uploadAndShareFile(experienceMetaDataModel.getExperienceId() + ".jpg", Uri.fromFile(mediaFile), "", MediaModel.TYPE_IMAGE);
+                    experienceMetaDataModel.setThumbnailPath(ret[2] + "###" + ret[1]);
+                }
+                experienceMetaDataModel.setIsPublished(true);
+                LatLng proLocation = ((MainActivity) activity).getSelectedExperienceDetail().getGeographicalBoundary().getCenter();
+                if(proLocation == null)
+                    proLocation = new LatLng(0.0, 0.0);
+                experienceMetaDataModel.setLatLng(proLocation.latitude + " " + proLocation.longitude);
+                experienceMetaDataModel.setSummary(((MainActivity) activity).getSelectedExperienceDetail().getOverallSummary(cloudManager.getUserName()));
+
+                res = makePostRequest(api_experience_publish.concat(experienceMetaDataModel.getExperienceId()), experienceMetaDataModel.toJSON());
+                //smepInteractionLog.addLog(InteractionLog.SELECT_UPLOAD_ALL, "");
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+                isError = true;
+            }
+            return null;
+        }
+
+        //After completing background task ->Dismiss the progress dialog
+        protected void onPostExecute(String file_url)
+        {
+            // dismiss the dialog after getting all files
+            pDialog.dismiss();
+            activity.runOnUiThread(new Runnable() {
+                public void run() {
+                    try {
+                        JSONObject json = getJsonFromHttpResponse(res);
+                        if(json == null)
+                            isError = true;
+                        else{
+                            String ret = json.getString("status");
+                            if (ret.equalsIgnoreCase(RestfulManager.STATUS_SUCCESS)) {
+                                String size = json.getJSONObject("data").getString("size");
+                                size = String.format("%.1f", Float.parseFloat(size));
+                                Toast.makeText(activity, "Your experience has been successfully published. The media package is " + size + " MB", Toast.LENGTH_LONG).show();
+                            }
+                            else
+                                isError = true;
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    if (isError)
+                        Toast.makeText(activity, "There were some error when publishing your experience. Please try again", Toast.LENGTH_LONG).show();
                 }
             });
         }

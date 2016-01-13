@@ -11,6 +11,9 @@ import android.net.Uri;
 import com.orm.SugarRecord;
 import com.orm.dsl.Ignore;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * <p>This class is a model of the response entity</p>
  *
@@ -113,14 +116,6 @@ public class ResponseModel extends SugarRecord {
 		this.status = status;
 	}
 
-	public String getMyId () {
-		return mid;
-	}
-
-	public void setMyId(String id) {
-		this.mid = id;
-	}
-
 	public String getContentType() {
 		return contentType;
 	}
@@ -167,9 +162,6 @@ public class ResponseModel extends SugarRecord {
 		return mid;
 	}
 
-	public void setMid(String mid) {
-		this.mid = mid;
-	}
 
 	public String getExperienceId() {
 		return experienceId;
@@ -200,5 +192,36 @@ public class ResponseModel extends SugarRecord {
 			responseHeader += this.userId + " on " + this.submittedDate + "</p>";
 		return responseHeader + SharcLibrary.getHTMLCodeForMedia(this.getId().toString(),"Responses", this.getNoOfLike(), this.getNoOfComment(), this.getContentType(),
 				this.getContent(), this.getDescription(), isLocal) + "</div>";
+	}
+
+	public JSONObject toMediaJson(){
+		JSONObject mediaExperience = new JSONObject();
+		try {
+			//Media designer first
+			JSONObject mediaDesigner = new JSONObject();
+			mediaDesigner.put("id", this.mid);
+			mediaDesigner.put("name", this.description);
+			mediaDesigner.put("contentType", this.contentType);
+			mediaDesigner.put("content", this.content);
+			mediaDesigner.put("size", this.size);
+			mediaDesigner.put("designerId", this.userId);
+			mediaDesigner.put("createdDate", this.submittedDate);
+			mediaDesigner.put("fileId", this.fileId);
+
+			mediaExperience.put("id", this.mid);
+			mediaExperience.put("mediaDesigner", mediaDesigner);
+			mediaExperience.put("entityType", this.entityType);
+			mediaExperience.put("entityId", this.entityId);
+			mediaExperience.put("experienceId", this.experienceId);
+			mediaExperience.put("caption", this.description);
+			mediaExperience.put("context", "");
+			//mediaExperience.put("mainMedia", "");
+			//mediaExperience.put("visible", "");
+			//mediaExperience.put("order", "");
+			mediaExperience.put("size", this.size);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return mediaExperience;
 	}
 }

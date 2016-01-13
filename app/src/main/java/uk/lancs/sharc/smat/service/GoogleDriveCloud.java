@@ -106,7 +106,7 @@ public class GoogleDriveCloud extends CloudManager{
         try {
             File file = mService.files().insert(body, mediaContent).execute();
             fileSize = file.getFileSize().toString();
-            return new String[]{fileSize, sharcWebViewLink.concat(file.getTitle())};
+            return new String[]{fileSize, sharcWebViewLink.concat(file.getTitle()), file.getId()};
         } catch (IOException e) {
             e.printStackTrace();//System.out.println("An error occured: " + e);
             throw  e;

@@ -199,6 +199,18 @@ public class ExperienceMetaDataModel extends SugarRecord {
 		}
 	}
 
+	public void setThumbnailPath(String thumbnailPath) {
+		this.thumbnailPath = thumbnailPath;
+	}
+
+	public void setIsPublished(boolean isPublished) {
+		this.isPublished = isPublished;
+	}
+
+	public void setLatLng(String latLng) {
+		this.latLng = latLng;
+	}
+
 	public String getPublicURL() {
 		return snapshotPath;
 	}

@@ -201,7 +201,7 @@ public class DropboxCloud extends CloudManager{
             String publicURL = dbxFs.fetchShareLink(path, false).toString();
             publicURL = publicURL.replace("https://www.drop","https://dl.drop");
             publicURL = publicURL.substring(0,publicURL.indexOf("?"));
-            return new String[]{fileSize, publicURL};
+            return new String[]{fileSize, publicURL, fName.substring(0,fName.lastIndexOf('.'))};
         }
         catch (Exception e) {
             e.printStackTrace();

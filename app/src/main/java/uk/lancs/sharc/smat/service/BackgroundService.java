@@ -51,9 +51,6 @@ public class BackgroundService extends Service
 	    @Override
 	    public void onLocationChanged(Location location)
         {
-	    	if(location.getAccuracy() > 0)
-				return;
-
 			SMEPAppVariable mySMEPAppVariable = (SMEPAppVariable) getApplicationContext();//Get the global settings of SMAT
 			//Update screen
 			((MainActivity)mySMEPAppVariable.getActivity()).updateSMEPWhenLocationChange(location);
@@ -74,7 +71,7 @@ public class BackgroundService extends Service
 
             if(allPOIs != null)
 		    {
-				if(location.getAccuracy() < 100) {
+				if(location.getAccuracy() <= 10) {
 					mCurrentLocation.set(location);
 					//ContentTriggerSource contentTriggerSource = new GpsContentTriggerSource(location, allPOIs, getApplicationContext(),mySMEPAppVariable.getActivity(), shownLocation);
 					//shownLocation = contentTriggerSource.renderContent();
@@ -85,7 +82,9 @@ public class BackgroundService extends Service
 	    @Override
 	    public void onProviderDisabled(String provider)
 	    {
-	        Log.e(TAG, "onProviderDisabled: " + provider);            
+	        Log.e(TAG, "onProviderDisabled: " + provider);
+			SMEPAppVariable mySMEPAppVariable = (SMEPAppVariable) getApplicationContext();//Get the global settings of SMAT
+			((MainActivity)mySMEPAppVariable.getActivity()).updateTitlebar();
 	    }
 	    @Override
 	    public void onProviderEnabled(String provider)

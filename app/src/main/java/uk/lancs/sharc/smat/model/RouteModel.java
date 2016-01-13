@@ -9,6 +9,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.orm.SugarRecord;
 import com.orm.dsl.Ignore;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * <p>This class is a reduced model of the route entity</p>
  * <p>It can be changed later depending on future work </p>
@@ -70,6 +73,7 @@ public class RouteModel extends SugarRecord {
 			}
 		}
 	}
+
 
 	public void setPath(String path) {
 		this.path = path;
@@ -168,4 +172,27 @@ public class RouteModel extends SugarRecord {
 		this.eoiList = eoiList;
 	}
 
+	public JSONObject toJson(){
+		JSONObject routeExperience = new JSONObject();
+		try {
+			//Media designer first
+			JSONObject routeDesigner = new JSONObject();
+			routeDesigner.put("id", this.mid);
+			routeDesigner.put("name", this.name);
+			routeDesigner.put("directed", this.directed);
+			routeDesigner.put("colour", this.colour);
+			routeDesigner.put("path", this.path);
+			routeDesigner.put("designerId", this.designerId);
+
+			routeExperience.put("id", this.mid);
+			routeExperience.put("routeDesigner", routeDesigner);
+			routeExperience.put("experienceId", this.experienceId);
+			routeExperience.put("description", this.description);
+			routeExperience.put("eoiList", this.eoiList);
+			routeExperience.put("poiList", this.poiList);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return routeExperience;
+	}
 }

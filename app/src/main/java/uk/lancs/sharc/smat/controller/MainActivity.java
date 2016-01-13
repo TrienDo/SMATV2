@@ -170,13 +170,6 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
     private Sensor sensor;                      //Manage all sensors
     private float mDeclination;                 //heading of the device
 
-    //Location service
-    LocationListener[] mLocationListeners = new LocationListener[] {
-            new LocationListener(LocationManager.GPS_PROVIDER),
-            new LocationListener(LocationManager.NETWORK_PROVIDER)
-    };
-    String testingCode;
-
     //Cloud manager
     CloudManager cloudManager;
     String pref_cloudAccId;//remember the previously logged in account
@@ -736,7 +729,6 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
             selectedLocationIcon = R.raw.yahred24;
             createCurrentLocationMarker();
 
-            setUpLocationService();
             //Start sensor
             sensorService = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
             sensor = sensorService.getDefaultSensor(Sensor.TYPE_ORIENTATION);
@@ -746,7 +738,7 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
             startBackgroundService();
             smepInteractionLog = new InteractionLog(this, mMap);
             smepInteractionLog.addLog(InteractionLog.START_APP, smepSettings.getAppVersion());
-            //showTermsAndConditions();
+            showTermsAndConditions();
         }
         catch (Exception e)
         {
@@ -1498,48 +1490,11 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
         }
     }
 
-    //////////////////////////////////////////////////////////////////////////////
-    // LOCATION CHANGE SERVICE
-    //////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * <p>This class tracks the current location of the user</p>
-     **/
-    private class LocationListener implements android.location.LocationListener
-    {
-        Location mLastLocation;
-
-        public LocationListener(String provider)
-        {
-            //Log.e(TAG, "LocationListener " + provider);
-            mLastLocation = new Location(provider);
-        }
-        @Override
-        public void onLocationChanged(Location location)
-        {
-            //Log.e(TAG, "onLocationChanged..................................: " + location);
-            mLastLocation.set(location);
-            updateSMEPWhenLocationChange(location);
-        }
-
-        @Override
-        public void onProviderDisabled(String provider)
-        {
-            //Log.e(TAG, "onProviderDisabled: " + provider);
-            if(smepSettings.isShowingGPS())
-                getActionBar().setTitle("GPS is not available yet");
-        }
-        @Override
-        public void onProviderEnabled(String provider)
-        {
-            //Log.e(TAG, "onProviderEnabled: " + provider);
-        }
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras)
-        {
-            //Log.e(TAG, "onStatusChanged: " + provider);
-        }
+    public void updateTitlebar(){
+        if(smepSettings.isShowingGPS())
+            getActionBar().setTitle("GPS is not available yet");
     }
+
 
     public void updateSMEPWhenLocationChange(Location location) {
         try {
@@ -1600,27 +1555,6 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
             }
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    private void setUpLocationService()	{
-        LocationManager mLocationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        try	{
-            mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE, mLocationListeners[1]);
-        }
-        catch (java.lang.SecurityException ex) {
-            Log.i(TAG, "fail to request location update, ignore", ex);
-        }
-        catch (IllegalArgumentException ex) {
-            Log.d(TAG, "network provider does not exist, " + ex.getMessage());
-        }
-        try {
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE, mLocationListeners[0]);
-        }
-        catch (java.lang.SecurityException ex) {
-            Log.i(TAG, "fail to request location update, ignore", ex);
-        } catch (IllegalArgumentException ex) {
-            Log.d(TAG, "gps provider does not exist " + ex.getMessage());
         }
     }
 
@@ -1700,6 +1634,7 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
                     cropImage(false);
                     //smepInteractionLog.addLog(initialLocation, mDbxAcctMgr, InteractionLog.ADD_RESPONSE_VIDEO, entity[0] + "#" + entity[1]);
                 }
+                break;
             case  PICK_FROM_FILE:
                 if (resultCode == RESULT_OK) {
                     fileUri = data.getData();
@@ -1710,7 +1645,7 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
             case CROP_IMAGE:
                 if (resultCode == RESULT_OK && data != null) {
                     String imagePath = data.getExtras().getString("imagePath");
-                    new UpdatePublishedExperiencesThread().execute(imagePath);
+                    restfulManager.publishExperience(imagePath);
                     //smepInteractionLog.addLog(initialLocation, mDbxAcctMgr, InteractionLog.ADD_RESPONSE_VIDEO, entity[0] + "#" + entity[1]);
                 }
                 break;
@@ -2244,16 +2179,10 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
         protected String doInBackground(String... args)
         {
             try {
-                //Connect to datastore
-
-                String proPath = selectedExperienceDetail.getMetaData().getExperienceId().toString();
-                //Else local project
-                //Get the index of the response
                 for(int index = 0; index < selectedExperienceDetail.getMyResponses().size(); index++) {
                     ResponseModel response = selectedExperienceDetail.getMyResponseAt(index);
                     uploadOneResponse(index, response);
                 }
-                //displayResponseTab();
             }
             catch (Exception e) {
                 e.printStackTrace();
@@ -2277,8 +2206,12 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
                         Toast.makeText(MainActivity.this, getString(R.string.message_upload_error), Toast.LENGTH_LONG).show();
                     else
                     {
-                        Toast.makeText(MainActivity.this, "All authoring actions have been uploaded successfully", Toast.LENGTH_LONG).show();
-                        showPublishExperienceDialog();
+                        if (selectedExperienceDetail.getMyResponses().size() == 0) {
+                            showPublishExperienceDialog();
+                            Toast.makeText(MainActivity.this, "All authoring actions have been uploaded successfully.", Toast.LENGTH_LONG).show();
+                        }
+                        else
+                            Toast.makeText(MainActivity.this, "Error when uploading authoring actions. Please try again.", Toast.LENGTH_LONG).show();
                     }
                 }
             });
@@ -2286,36 +2219,64 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
     }
 
     public void uploadOneResponse(int index, ResponseModel response) throws Exception {
-        if(response.getEntityType().equalsIgnoreCase("NEW"))//New POI
+        if(response.getEntityType().equalsIgnoreCase(ResponseModel.FOR_NEW_POI))//New POI
         {
             //Insert a new row to the POI table
             POIModel poi = selectedExperienceDetail.getPOIFromID(response.getResponseId());
             if(poi != null) {
-
+                poi.setDesignerId(restfulManager.getUserId());
+                if(restfulManager.uploadPoi(poi))
+                    selectedExperienceDetail.removeUploadedResponseAt(index);
+                else
+                    Toast.makeText(this, "Error when uploading authoring actions. Please try again", Toast.LENGTH_LONG).show();
             }
             else
                 throw new Exception();
         }
-        else if(response.getEntityType().equalsIgnoreCase("ROUTE"))//New Route
+        else if(response.getEntityType().equalsIgnoreCase(ResponseModel.FOR_ROUTE))//New Route
         {
             //Insert a new row to the POI table
             RouteModel route = selectedExperienceDetail.getRouteFromID(response.getResponseId());
             if(route != null) {
-
+                route.setDesignerId(restfulManager.getUserId());
+                if(restfulManager.uploadRoute(route))
+                    selectedExperienceDetail.removeUploadedResponseAt(index);
+                else
+                    Toast.makeText(this, "Error when uploading authoring actions. Please try again", Toast.LENGTH_LONG).show();
             }
             else
                 throw new Exception();
-        }
-        else // New media
+        } else //New Media
         {
-            MediaModel mediaModel = selectedExperienceDetail.getMediaFromId(response.getResponseId());
-            if(mediaModel != null) {
+            MediaModel media = selectedExperienceDetail.getMediaFromId(response.getResponseId());
+            String[] ret;
+            String filename = response.getResponseId();
+            if (response.getContentType().equalsIgnoreCase(MediaModel.TYPE_TEXT))
+                filename = filename.concat(".html");
+            else if (response.getContentType().equalsIgnoreCase(MediaModel.TYPE_IMAGE))
+                filename = filename.concat(".jpg");
+            else if(response.getContentType().equalsIgnoreCase(MediaModel.TYPE_VIDEO))
+                filename = filename.concat(".mp4");
+            else if(response.getContentType().equalsIgnoreCase(MediaModel.TYPE_AUDIO)) {
+                filename = filename.concat(".mp3");
+            }
 
+            if (response.getContentType().equalsIgnoreCase(MediaModel.TYPE_TEXT)) {
+                String content = "<h3>" + response.getDescription() + "</h3><p>"  + response.getContent() + "</p";
+                ret = cloudManager.uploadAndShareFile(filename, null, content, MediaModel.TYPE_TEXT);
             }
             else
-                throw new Exception();
+                ret = cloudManager.uploadAndShareFile(filename, response.getFileUri(), response.getContent(), response.getContentType());
+            response.setSize(Integer.parseInt(ret[0]));
+            response.setContent(ret[1]);
+            response.setFileId(ret[2]);
+            response.setUserId(restfulManager.getUserId());
+            if(restfulManager.uploadMediaFromResponse(response, media))
+                selectedExperienceDetail.removeUploadedResponseAt(index);
+            else
+                Toast.makeText(this, "Error when uploading authoring actions. Please try again", Toast.LENGTH_LONG).show();
         }
-        //selectedExperienceDetail.removeUploadedResponseAt(index);
+
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -2542,7 +2503,7 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
                     curRoute.setDescription(desc);
                     selectedExperienceDetail.updateRoute(curRoute);
                     //Response - just the id & name (for displaying) of the route is important -> other info from the route will be retrieved later when uploading to server
-                    ResponseModel res = new ResponseModel(curRoute.getId().toString(), selectedExperienceDetail.getMetaData().getExperienceId(), "", ResponseModel.FOR_ROUTE,
+                    ResponseModel res = new ResponseModel(curRoute.getRouteId(), selectedExperienceDetail.getMetaData().getExperienceId(), "", ResponseModel.FOR_ROUTE,
                             curRoute.getName(), curRoute.getDescription(), ResponseModel.FOR_ROUTE, "", ResponseModel.STATUS_FOR_UPLOAD, -1, SharcLibrary.getMySQLDateStamp());
                     selectedExperienceDetail.addMyResponse(res);
                     curRoutePath.clear();
@@ -2604,7 +2565,7 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
         });
         alert.setNegativeButton("No", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-                new UpdatePublishedExperiencesThread().execute("");
+                restfulManager.publishExperience("");
             }
         });
         alert.setNeutralButton("Cancel", null);
@@ -2692,78 +2653,6 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
         alertDialog.show();
     }
 
-    /*
-        This inner class helps
-            - Update meta data for a published experience
-        Note this class needs retrieve information from server so it has to run in background
-    */
-    class UpdatePublishedExperiencesThread extends AsyncTask<String, String, String>
-    {
-        //Before starting the background thread -> Show Progress Dialog
-        private boolean isError = false;
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            pDialog = new ProgressDialog(MainActivity.this);
-            pDialog.setMessage("Publishing the experience. Please wait...");
-            pDialog.setIndeterminate(false);
-            pDialog.setCancelable(false);
-            pDialog.show();
-        }
-
-        //Update designer and experience info
-        protected String doInBackground(String... args)
-        {
-
-            String imagePath = args[0];
-            try
-            {
-
-                String publicRepThumbnail = "";
-                if(!imagePath.equalsIgnoreCase(""))
-                {
-                    File mediaFile = new File(imagePath);
-                    //publicRepThumbnail = uploadAndShareFile(proPath + ".png",Uri.fromFile(mediaFile), false)[1];//image but compressed already so false
-                    publicRepThumbnail = SharcLibrary.getDropboxDirectLink(publicRepThumbnail);
-                }
-                LatLng proLocation = selectedExperienceDetail.getGeographicalBoundary().getCenter();
-                if(proLocation == null)
-                    proLocation = new LatLng(0.0, 0.0);
-
-                //update MySQL data
-                //JSONObject json = jParser.makeHttpRequest(url_updatePublishedExperience, "POST", params);
-                //if (json.getInt("success") != 1)
-                //    isError = true;
-                smepInteractionLog.addLog(InteractionLog.SELECT_UPLOAD_ALL, "");
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-                isError = true;
-            }
-            finally {
-
-            }
-            return null;
-        }
-
-        //After completing background task ->Dismiss the progress dialog
-        protected void onPostExecute(String file_url)
-        {
-            // dismiss the dialog after getting all files
-            pDialog.dismiss();
-            // updating UI from Background Thread
-            runOnUiThread(new Runnable()
-            {
-                public void run()
-                {
-                    if(!isError)
-                        Toast.makeText(MainActivity.this, "Your experience has been successfully published", Toast.LENGTH_LONG).show();
-                    else
-                        Toast.makeText(MainActivity.this, "There were some error when publishing your experience. Please try again later", Toast.LENGTH_LONG).show();
-                }
-            });
-        }
-    }
 
     public  void checkAndReportCrash() {
         final ErrorReporter reporter = ErrorReporter.getInstance();

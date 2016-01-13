@@ -7,6 +7,9 @@ import uk.lancs.sharc.smat.service.ExperienceDatabaseManager;
 import com.google.android.gms.maps.model.LatLng;
 import com.orm.SugarRecord;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * <p>This class is a model of the POI entity</p>
  * <p>It can be changed later depending on future work </p>
@@ -71,6 +74,10 @@ public class POIModel extends SugarRecord {
 			return thumbnailPath;
 		else
 			return thumbnailPath.substring(thumbnailPath.lastIndexOf("/"));
+	}
+
+	public void setDesignerId(String designerId) {
+		this.designerId = designerId;
 	}
 
 	public void setThumbnailPath(String path){
@@ -229,5 +236,29 @@ public class POIModel extends SugarRecord {
 			}
 		}
 		return htmlResponseArray;
+	}
+
+	public JSONObject toJson(){
+		JSONObject poiExperience = new JSONObject();
+		try {
+			//Media designer first
+			JSONObject poiDesigner = new JSONObject();
+			poiDesigner.put("id", this.mid);
+			poiDesigner.put("name", this.name);
+			poiDesigner.put("coordinate", this.coordinate);
+			poiDesigner.put("triggerZone", this.triggerZone);
+			poiDesigner.put("designerId", this.designerId);
+
+			poiExperience.put("id", this.mid);
+			poiExperience.put("poiDesigner", poiDesigner);
+			poiExperience.put("experienceId", this.experienceId);
+			poiExperience.put("description", this.description);
+			poiExperience.put("typeList", this.typeList);
+			poiExperience.put("eoiList", this.eoiList);
+			poiExperience.put("routeList", this.routeList);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return poiExperience;
 	}
 }

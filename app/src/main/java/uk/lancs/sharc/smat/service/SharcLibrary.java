@@ -145,7 +145,7 @@ public class SharcLibrary
                 if(path.lastIndexOf("/")!= -1)//There is valid path -> read file for text media
                     strMedia += "<div style='margin-left:20px'>" +  SharcLibrary.readTextFile(new FileInputStream(path))+  "</div>";
                 else//text is already in the content
-                    strMedia += "<div style='margin-left:20px'>" + content +  "</div>";
+                    strMedia += "<div style='margin-left:20px'><p style='font-weight: bold;'>" +  name + "</p>" + content +  "</div>";
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
