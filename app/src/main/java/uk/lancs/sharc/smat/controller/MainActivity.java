@@ -1543,7 +1543,7 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
                 float[] results = new float[1];
                 Location.distanceBetween(lastLatLng.latitude,lastLatLng.longitude, thisLatLng.latitude,thisLatLng.longitude, results);
                 //if(results[0] < 10) {
-                if(location.getAccuracy() <= 150 && results[0] >= 5) {
+                if(location.getAccuracy() <= 10 && results[0] >= 5) {
                     curRoute.getLatLngPath().add(thisLatLng);
                     curRoute.setPath(curRoute.getPathString() + " " + String.valueOf(thisLatLng.latitude + " " + String.valueOf(thisLatLng.longitude)));
                     curRoutePath.add(mMap.addPolyline(new PolylineOptions().add(lastLatLng).add(thisLatLng).width(5).color(Color.RED)));
