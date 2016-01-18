@@ -1146,9 +1146,11 @@ public class MainActivity extends SlidingActivity implements OnMapClickListener 
             content.append("<blockquote><button style='width:95%;height:50px;font-size:20px;' onclick='Android.goToMapView()' >Go to Map View</button></blockquote>");
             renderMediaContent(content.toString());
             */
-            medAdapter = new MediaListAdapter(MainActivity.this, mediaList, type);
-            ListView mLv = (ListView) findViewById(R.id.webViewTab);
-            mLv.setAdapter(medAdapter);
+            if(mediaList != null) {
+                medAdapter = new MediaListAdapter(MainActivity.this, mediaList, type);
+                ListView mLv = (ListView) findViewById(R.id.webViewTab);
+                mLv.setAdapter(medAdapter);
+            }
         }
         catch (Exception e)
         {
